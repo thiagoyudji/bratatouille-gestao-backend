@@ -33,13 +33,13 @@ public class Item {
     public Item() {
     }
 
-    public Item(String name, ItemType type, UnitType baseUnit, Boolean active, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Item(String name, ItemType type, UnitType baseUnit) {
         this.name = name;
         this.type = type;
         this.baseUnit = baseUnit;
-        this.active = active;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.active = true;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -74,7 +74,7 @@ public class Item {
         this.baseUnit = baseUnit;
     }
 
-    public Boolean getActive() {
+    public Boolean isActive() {
         return active;
     }
 

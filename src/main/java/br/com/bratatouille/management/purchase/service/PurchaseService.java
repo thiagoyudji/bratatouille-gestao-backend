@@ -4,9 +4,10 @@ import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.repository.ItemRepository;
 import br.com.bratatouille.management.partner.entity.Partner;
 import br.com.bratatouille.management.partner.repository.PartnerRepository;
-import br.com.bratatouille.management.purchase.dto.PurchaseCreateRequest;
+import br.com.bratatouille.management.purchase.dto.request.PurchaseCreateRequest;
 import br.com.bratatouille.management.purchase.domain.PurchaseItemData;
-import br.com.bratatouille.management.purchase.dto.PurchaseItemRequest;
+import br.com.bratatouille.management.purchase.dto.request.PurchaseItemRequest;
+import br.com.bratatouille.management.purchase.dto.response.PurchaseResponse;
 import br.com.bratatouille.management.purchase.entity.Purchase;
 import br.com.bratatouille.management.purchase.entity.PurchaseItem;
 import br.com.bratatouille.management.purchase.repository.PurchaseRepository;
@@ -14,7 +15,7 @@ import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import br.com.bratatouille.management.purchase.domain.PurchaseSplitData;
-import br.com.bratatouille.management.purchase.dto.PurchaseSplitRequest;
+import br.com.bratatouille.management.purchase.dto.request.PurchaseSplitRequest;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class PurchaseService {
     }
 
     @Transactional
-    public Purchase create(PurchaseCreateRequest request) {
+    public PurchaseResponse create(PurchaseCreateRequest request) {
         Partner payer = getValidPartner(request.paidByPartnerId());
 
         List<PurchaseItemData> items = request.items()
@@ -64,7 +65,7 @@ public class PurchaseService {
 
         registerStockEntries(savedPurchase);
 
-        return savedPurchase;
+        return PurchaseResponse.from(savedPurchase);
     }
 
     private PurchaseItemData toItemData(PurchaseItemRequest request) {
@@ -101,12 +102,26 @@ public class PurchaseService {
 
     private void registerStockEntries(Purchase purchase) {
         for (PurchaseItem item : purchase.getItems()) {
-            stockService.add(
+            stockService.addFromPurchase(
                     item.getItem(),
-                    item.getQuantity(),
-                    "PURCHASE",
-                    purchase.getId()
+                    item.getQuantity()
             );
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<PurchaseResponse> findAll() {
+        return purchaseRepository.findAll()
+                .stream()
+                .map(PurchaseResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PurchaseResponse findById(Long id) {
+        Purchase purchase = purchaseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
+
+        return PurchaseResponse.from(purchase);
     }
 }

@@ -1,13 +1,11 @@
 package br.com.bratatouille.management.partner.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "partners")
@@ -24,13 +22,23 @@ public class Partner {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "partner_roles",
+            joinColumns = @JoinColumn(name = "partner_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Set<PartnerRole> roles = new HashSet<>();
+
     public Partner() {
     }
 
-    public Partner(String name, Boolean active, LocalDateTime createdAt) {
+    public Partner(String name, Boolean active, LocalDateTime createdAt, Set<PartnerRole> roles) {
         this.name = name;
         this.active = active;
         this.createdAt = createdAt;
+        this.roles = roles;
     }
 
     public Long getId() {
@@ -63,5 +71,13 @@ public class Partner {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Set<PartnerRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<PartnerRole> roles) {
+        this.roles = roles;
     }
 }

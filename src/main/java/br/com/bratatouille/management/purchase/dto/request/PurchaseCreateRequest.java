@@ -1,4 +1,4 @@
-package br.com.bratatouille.management.purchase.dto;
+package br.com.bratatouille.management.purchase.dto.request;
 
 import java.time.LocalDate;
 import java.util.List;
