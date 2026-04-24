@@ -1,0 +1,116 @@
+PurchaseCreateRequest:
+  type: object
+  required:
+    - paidByPartnerId
+    - purchaseDate
+    - items
+    - splits
+  properties:
+    paidByPartnerId:
+      type: integer
+      format: int64
+    purchaseDate:
+      type: string
+      format: date
+    note:
+      type: string
+    items:
+      type: array
+      items:
+        $ref: '#/PurchaseItemRequest'
+    splits:
+      type: array
+      items:
+        $ref: '#/PurchaseSplitRequest'
+
+PurchaseItemRequest:
+  type: object
+  required:
+    - itemId
+    - quantity
+    - unit
+    - totalValue
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    quantity:
+      type: number
+    unit:
+      type: string
+    totalValue:
+      type: number
+
+PurchaseSplitRequest:
+  type: object
+  required:
+    - partnerId
+    - amount
+  properties:
+    partnerId:
+      type: integer
+      format: int64
+    amount:
+      type: number
+
+PurchaseResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    purchaseDate:
+      type: string
+      format: date
+    note:
+      type: string
+    paidByPartnerId:
+      type: integer
+      format: int64
+    paidByPartnerName:
+      type: string
+    totalAmount:
+      type: number
+    createdAt:
+      type: string
+      format: date-time
+    items:
+      type: array
+      items:
+        $ref: '#/PurchaseItemResponse'
+    splits:
+      type: array
+      items:
+        $ref: '#/PurchaseSplitResponse'
+
+PurchaseItemResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    quantity:
+      type: number
+    unit:
+      type: string
+    totalValue:
+      type: number
+
+PurchaseSplitResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    partnerId:
+      type: integer
+      format: int64
+    partnerName:
+      type: string
+    owedAmount:
+      type: number

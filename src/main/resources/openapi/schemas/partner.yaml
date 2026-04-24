@@ -1,0 +1,41 @@
+CreatePartnerRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+    roles:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+        enum:
+          - ADMIN
+          - PRODUCER
+          - VIEWER
+          - EDITOR
+
+PartnerResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    name:
+      type: string
+    active:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    roles:
+      type: array
+      uniqueItems: true
+      items:
+        type: string
+        enum:
+          - ADMIN
+          - PRODUCER
+          - VIEWER
+          - EDITOR

@@ -5,8 +5,9 @@ import br.com.bratatouille.management.financial.domain.FinancialSettlementCalcul
 import br.com.bratatouille.management.financial.domain.PartnerBalance;
 import br.com.bratatouille.management.financial.domain.PartnerBalanceAccumulator;
 import br.com.bratatouille.management.financial.domain.PixTransfer;
-import br.com.bratatouille.management.financial.dto.PartnerBalanceResponse;
-import br.com.bratatouille.management.financial.dto.PixSettlementResponse;
+import br.com.bratatouille.management.financial.mapper.FinancialMapper;
+import br.com.bratatouille.management.generated.model.PartnerBalanceResponse;
+import br.com.bratatouille.management.generated.model.PixSettlementResponse;
 import br.com.bratatouille.management.partner.entity.Partner;
 import br.com.bratatouille.management.purchase.entity.Purchase;
 import br.com.bratatouille.management.purchase.entity.PurchaseSplit;
@@ -23,20 +24,23 @@ import java.util.Map;
 public class FinancialService {
 
     private final PurchaseRepository purchaseRepository;
+    private final FinancialMapper financialMapper;
     private final FinancialSettlementCalculator settlementCalculator;
 
     public FinancialService(
             PurchaseRepository purchaseRepository,
+            FinancialMapper financialMapper,
             FinancialSettlementCalculator settlementCalculator
     ) {
         this.purchaseRepository = purchaseRepository;
+        this.financialMapper = financialMapper;
         this.settlementCalculator = settlementCalculator;
     }
 
     @Transactional(readOnly = true)
     public List<PartnerBalanceResponse> getBalances() {
         return calculateBalances().stream()
-                .map(this::toBalanceResponse)
+                .map(financialMapper::toBalanceResponse)
                 .toList();
     }
 
@@ -45,7 +49,7 @@ public class FinancialService {
         List<PixTransfer> transfers = settlementCalculator.calculate(calculateBalances());
 
         return transfers.stream()
-                .map(this::toPixSettlementResponse)
+                .map(financialMapper::toPixSettlementResponse)
                 .toList();
     }
 
@@ -95,23 +99,5 @@ public class FinancialService {
 
     private boolean isNotZero(PartnerBalance balance) {
         return !MoneyUtils.equals(balance.amount(), BigDecimal.ZERO);
-    }
-
-    private PartnerBalanceResponse toBalanceResponse(PartnerBalance balance) {
-        return new PartnerBalanceResponse(
-                balance.partner().getId(),
-                balance.partner().getName(),
-                MoneyUtils.normalize(balance.amount())
-        );
-    }
-
-    private PixSettlementResponse toPixSettlementResponse(PixTransfer transfer) {
-        return new PixSettlementResponse(
-                transfer.from().getId(),
-                transfer.from().getName(),
-                transfer.to().getId(),
-                transfer.to().getName(),
-                MoneyUtils.normalize(transfer.amount())
-        );
     }
 }

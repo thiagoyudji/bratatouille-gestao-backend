@@ -1,0 +1,31 @@
+balances:
+  get:
+    tags:
+      - Financial
+    operationId: getBalances
+    summary: Get partner balances
+    responses:
+      '200':
+        description: Partner balances found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/financial.yaml#/PartnerBalanceResponse'
+
+pixSettlement:
+  get:
+    tags:
+      - Financial
+    operationId: getPixSettlement
+    summary: Get Pix settlement suggestion
+    responses:
+      '200':
+        description: Pix settlement found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/financial.yaml#/PixSettlementResponse'

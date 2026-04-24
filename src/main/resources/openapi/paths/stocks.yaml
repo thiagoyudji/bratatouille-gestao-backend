@@ -1,0 +1,76 @@
+stocks:
+  get:
+    tags:
+      - Stocks
+    operationId: findAllStocks
+    summary: List all stocks
+    responses:
+      '200':
+        description: Stocks found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/stock.yaml#/StockResponse'
+
+stockByItemId:
+  get:
+    tags:
+      - Stocks
+    operationId: findStockByItemId
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Stock found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stock.yaml#/StockResponse'
+
+adjustStock:
+  post:
+    tags:
+      - Stocks
+    operationId: adjustStockManually
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/stock.yaml#/AdjustStockRequest'
+    responses:
+      '200':
+        description: Stock adjusted
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/stock.yaml#/StockResponse'
+
+stockMovements:
+  get:
+    tags:
+      - Stocks
+    operationId: findStockMovements
+    responses:
+      '200':
+        description: Stock movements found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/stock.yaml#/StockMovementResponse'

@@ -1,0 +1,55 @@
+partners:
+  get:
+    tags:
+      - Partners
+    operationId: findAllPartners
+    summary: List all partners
+    responses:
+      '200':
+        description: Partners found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/partner.yaml#/PartnerResponse'
+
+  post:
+    tags:
+      - Partners
+    operationId: createPartner
+    summary: Create partner
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/partner.yaml#/CreatePartnerRequest'
+    responses:
+      '200':
+        description: Partner created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/partner.yaml#/PartnerResponse'
+
+partnerById:
+  get:
+    tags:
+      - Partners
+    operationId: findPartnerById
+    summary: Find partner by id
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Partner found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/partner.yaml#/PartnerResponse'

@@ -1,20 +1,21 @@
 package br.com.bratatouille.management.partner.controller;
 
-import br.com.bratatouille.management.partner.dto.CreatePartnerRequest;
-import br.com.bratatouille.management.partner.dto.PartnerResponse;
+import br.com.bratatouille.management.generated.api.PartnersApiDelegate;
+import br.com.bratatouille.management.generated.model.CreatePartnerRequest;
+import br.com.bratatouille.management.generated.model.PartnerResponse;
 import br.com.bratatouille.management.partner.service.PartnerService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/partners")
-public class PartnerController {
+@Component
+public class PartnerApiDelegateImpl implements PartnersApiDelegate {
 
     private final PartnerService partnerService;
 
-    public PartnerController(PartnerService partnerService) {
+    public PartnerApiDelegateImpl(PartnerService partnerService) {
         this.partnerService = partnerService;
     }
 

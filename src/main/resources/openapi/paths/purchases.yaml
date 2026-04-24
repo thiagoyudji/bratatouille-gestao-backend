@@ -1,0 +1,55 @@
+purchases:
+  get:
+    tags:
+      - Purchases
+    operationId: findAllPurchases
+    summary: List all purchases
+    responses:
+      '200':
+        description: Purchases found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/purchase.yaml#/PurchaseResponse'
+
+  post:
+    tags:
+      - Purchases
+    operationId: createPurchase
+    summary: Create purchase
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/purchase.yaml#/PurchaseCreateRequest'
+    responses:
+      '200':
+        description: Purchase created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/purchase.yaml#/PurchaseResponse'
+
+purchaseById:
+  get:
+    tags:
+      - Purchases
+    operationId: findPurchaseById
+    summary: Find purchase by id
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Purchase found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/purchase.yaml#/PurchaseResponse'

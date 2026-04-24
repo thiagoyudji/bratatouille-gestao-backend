@@ -1,8 +1,11 @@
 package br.com.bratatouille.management.item.service;
 
-import br.com.bratatouille.management.item.dto.CreateItemRequest;
-import br.com.bratatouille.management.item.dto.ItemResponse;
+import br.com.bratatouille.management.generated.model.CreateItemRequest;
+import br.com.bratatouille.management.generated.model.ItemResponse;
 import br.com.bratatouille.management.item.entity.Item;
+import br.com.bratatouille.management.item.entity.ItemType;
+import br.com.bratatouille.management.item.entity.UnitType;
+import br.com.bratatouille.management.item.mapper.ItemMapper;
 import br.com.bratatouille.management.item.repository.ItemRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,28 +14,31 @@ import java.util.List;
 @Service
 public class ItemService {
 
+    private final ItemMapper itemMapper;
     private final ItemRepository itemRepository;
 
-    public ItemService(ItemRepository itemRepository) {
+    public ItemService(ItemRepository itemRepository,
+                       ItemMapper itemMapper) {
+        this.itemMapper = itemMapper;
         this.itemRepository = itemRepository;
     }
 
     public ItemResponse create(CreateItemRequest request) {
         Item item = new Item(
-                request.name(),
-                request.type(),
-                request.baseUnit()
+                request.getName(),
+                ItemType.valueOf(request.getType().name()),
+                UnitType.valueOf(request.getBaseUnit().name())
         );
 
         Item saved = itemRepository.save(item);
 
-        return ItemResponse.from(saved);
+        return itemMapper.toResponse(saved);
     }
 
     public List<ItemResponse> findAll() {
         return itemRepository.findAll()
             .stream()
-            .map(this::toResponse)
+            .map(itemMapper::toResponse)
             .toList();
     }
 
@@ -40,18 +46,7 @@ public class ItemService {
         Item item = itemRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        return toResponse(item);
+        return itemMapper.toResponse(item);
     }
 
-    private ItemResponse toResponse(Item item) {
-        return new ItemResponse(
-            item.getId(),
-            item.getName(),
-            item.getType(),
-            item.getBaseUnit(),
-            item.isActive(),
-            item.getCreatedAt(),
-            item.getUpdatedAt()
-        );
-    }
 }

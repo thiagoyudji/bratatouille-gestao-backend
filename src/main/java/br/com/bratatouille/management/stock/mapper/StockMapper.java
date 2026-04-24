@@ -1,0 +1,39 @@
+package br.com.bratatouille.management.stock.mapper;
+
+import br.com.bratatouille.management.generated.model.StockMovementResponse;
+import br.com.bratatouille.management.generated.model.StockResponse;
+import br.com.bratatouille.management.stock.entity.Stock;
+import br.com.bratatouille.management.stock.entity.StockMovement;
+import org.springframework.stereotype.Component;
+
+import java.time.ZoneOffset;
+
+@Component
+public class StockMapper {
+
+    public StockResponse toResponse(Stock stock) {
+        StockResponse response = new StockResponse();
+
+        response.setId(stock.getId());
+        response.setItemId(stock.getItem().getId());
+        response.setItemName(stock.getItem().getName());
+        response.setItemType(StockResponse.ItemTypeEnum.valueOf(stock.getItem().getType().name()));
+        response.setBaseUnit(StockResponse.BaseUnitEnum.valueOf(stock.getItem().getBaseUnit().name()));
+        response.setQuantity(stock.getQuantity());
+
+        return response;
+    }
+
+    public StockMovementResponse toMovementResponse(StockMovement movement) {
+        StockMovementResponse response = new StockMovementResponse();
+
+        response.setId(movement.getId());
+        response.setItemId(movement.getItem().getId());
+        response.setItemName(movement.getItem().getName());
+        response.setQuantity(movement.getQuantity());
+        response.setType(StockMovementResponse.TypeEnum.valueOf(movement.getType().name()));
+        response.setCreatedAt(movement.getCreatedAt().atOffset(ZoneOffset.UTC));
+
+        return response;
+    }
+}

@@ -1,21 +1,22 @@
 package br.com.bratatouille.management.purchase.service;
 
+import br.com.bratatouille.management.generated.model.PurchaseCreateRequest;
+import br.com.bratatouille.management.generated.model.PurchaseItemRequest;
+import br.com.bratatouille.management.generated.model.PurchaseResponse;
+import br.com.bratatouille.management.generated.model.PurchaseSplitRequest;
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.repository.ItemRepository;
 import br.com.bratatouille.management.partner.entity.Partner;
 import br.com.bratatouille.management.partner.repository.PartnerRepository;
-import br.com.bratatouille.management.purchase.dto.request.PurchaseCreateRequest;
 import br.com.bratatouille.management.purchase.domain.PurchaseItemData;
-import br.com.bratatouille.management.purchase.dto.request.PurchaseItemRequest;
-import br.com.bratatouille.management.purchase.dto.response.PurchaseResponse;
 import br.com.bratatouille.management.purchase.entity.Purchase;
 import br.com.bratatouille.management.purchase.entity.PurchaseItem;
+import br.com.bratatouille.management.purchase.mapper.PurchaseMapper;
 import br.com.bratatouille.management.purchase.repository.PurchaseRepository;
 import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import br.com.bratatouille.management.purchase.domain.PurchaseSplitData;
-import br.com.bratatouille.management.purchase.dto.request.PurchaseSplitRequest;
 
 import java.util.List;
 
@@ -23,17 +24,20 @@ import java.util.List;
 public class PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
+    private final PurchaseMapper purchaseMapper;
     private final PartnerRepository partnerRepository;
     private final ItemRepository itemRepository;
     private final StockService stockService;
 
     public PurchaseService(
             PurchaseRepository purchaseRepository,
+            PurchaseMapper purchaseMapper,
             PartnerRepository partnerRepository,
             ItemRepository itemRepository,
             StockService stockService
     ) {
         this.purchaseRepository = purchaseRepository;
+        this.purchaseMapper = purchaseMapper;
         this.partnerRepository = partnerRepository;
         this.itemRepository = itemRepository;
         this.stockService = stockService;
@@ -41,22 +45,22 @@ public class PurchaseService {
 
     @Transactional
     public PurchaseResponse create(PurchaseCreateRequest request) {
-        Partner payer = getValidPartner(request.paidByPartnerId());
+        Partner payer = getValidPartner(request.getPaidByPartnerId());
 
-        List<PurchaseItemData> items = request.items()
+        List<PurchaseItemData> items = request.getItems()
                 .stream()
                 .map(this::toItemData)
                 .toList();
 
-        List<PurchaseSplitData> splits = request.splits()
+        List<PurchaseSplitData> splits = request.getSplits()
                 .stream()
                 .map(this::toSplitData)
                 .toList();
 
         Purchase purchase = Purchase.create(
-                request.purchaseDate(),
+                request.getPurchaseDate(),
                 payer,
-                request.note(),
+                request.getNote(),
                 items,
                 splits
         );
@@ -65,27 +69,27 @@ public class PurchaseService {
 
         registerStockEntries(savedPurchase);
 
-        return PurchaseResponse.from(savedPurchase);
+        return purchaseMapper.toResponse(savedPurchase);
     }
 
     private PurchaseItemData toItemData(PurchaseItemRequest request) {
-        Item item = itemRepository.findById(request.itemId())
+        Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
         return new PurchaseItemData(
                 item,
-                request.quantity(),
-                request.unit(),
-                request.totalValue()
+                request.getQuantity(),
+                request.getUnit(),
+                request.getTotalValue()
         );
     }
 
     private PurchaseSplitData toSplitData(PurchaseSplitRequest request) {
-        Partner partner = getValidPartner(request.partnerId());
+        Partner partner = getValidPartner(request.getPartnerId());
 
         return new PurchaseSplitData(
                 partner,
-                request.amount()
+                request.getAmount()
         );
     }
 
@@ -113,7 +117,7 @@ public class PurchaseService {
     public List<PurchaseResponse> findAll() {
         return purchaseRepository.findAll()
                 .stream()
-                .map(PurchaseResponse::from)
+                .map(purchaseMapper::toResponse)
                 .toList();
     }
 
@@ -122,6 +126,6 @@ public class PurchaseService {
         Purchase purchase = purchaseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
 
-        return PurchaseResponse.from(purchase);
+        return purchaseMapper.toResponse(purchase);
     }
 }

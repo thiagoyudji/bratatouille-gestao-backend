@@ -1,0 +1,57 @@
+AdjustStockRequest:
+  type: object
+  required:
+    - quantity
+  properties:
+    quantity:
+      type: number
+
+StockResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    itemType:
+      type: string
+      enum:
+        - INGREDIENT
+        - PACKAGING
+        - FINISHED_PRODUCT
+    baseUnit:
+      type: string
+      enum:
+        - G
+        - ML
+        - UN
+    quantity:
+      type: number
+
+StockMovementResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    quantity:
+      type: number
+    type:
+      type: string
+      enum:
+        - PURCHASE_ENTRY
+        - PRODUCTION_CONSUMPTION
+        - PRODUCTION_OUTPUT
+        - MANUAL_ADJUSTMENT
+    createdAt:
+      type: string
+      format: date-time

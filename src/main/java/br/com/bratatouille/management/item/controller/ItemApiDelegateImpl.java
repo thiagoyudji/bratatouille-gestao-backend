@@ -1,20 +1,23 @@
 package br.com.bratatouille.management.item.controller;
 
-import br.com.bratatouille.management.item.dto.CreateItemRequest;
-import br.com.bratatouille.management.item.dto.ItemResponse;
+import br.com.bratatouille.management.generated.api.ItemsApiDelegate;
+import br.com.bratatouille.management.generated.model.CreateItemRequest;
+import br.com.bratatouille.management.generated.model.ItemResponse;
+import br.com.bratatouille.management.item.mapper.ItemMapper;
 import br.com.bratatouille.management.item.service.ItemService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/items")
-public class ItemController {
+
+@Component
+public class ItemApiDelegateImpl implements ItemsApiDelegate {
 
     private final ItemService itemService;
 
-    public ItemController(ItemService itemService) {
+    public ItemApiDelegateImpl(ItemService itemService) {
         this.itemService = itemService;
     }
 

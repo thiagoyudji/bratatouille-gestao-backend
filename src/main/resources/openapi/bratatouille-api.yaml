@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+  title: Bratatouille Management API
+  version: 1.0.0
+
+paths:
+  /api/stocks:
+    $ref: './paths/stocks.yaml#/stocks'
+  /api/stocks/{itemId}:
+    $ref: './paths/stocks.yaml#/stockByItemId'
+  /api/stocks/{itemId}/adjust:
+    $ref: './paths/stocks.yaml#/adjustStock'
+  /api/stocks/movements:
+    $ref: './paths/stocks.yaml#/stockMovements'
+
+  /api/financial/balances:
+    $ref: './paths/financial.yaml#/balances'
+  /api/financial/pix-settlement:
+    $ref: './paths/financial.yaml#/pixSettlement'
+
+  /api/partners:
+    $ref: './paths/partners.yaml#/partners'
+  /api/partners/{id}:
+    $ref: './paths/partners.yaml#/partnerById'
+
+  /api/items:
+    $ref: './paths/items.yaml#/items'
+  /api/items/{id}:
+    $ref: './paths/items.yaml#/itemById'
+
+  /api/purchases:
+    $ref: './paths/purchases.yaml#/purchases'
+  /api/purchases/{id}:
+    $ref: './paths/purchases.yaml#/purchaseById'
+
+components:
+  schemas:
+    StockResponse:
+      $ref: './schemas/stock.yaml#/StockResponse'
+    AdjustStockRequest:
+      $ref: './schemas/stock.yaml#/AdjustStockRequest'
+    StockMovementResponse:
+      $ref: './schemas/stock.yaml#/StockMovementResponse'
+
+    PartnerBalanceResponse:
+      $ref: './schemas/financial.yaml#/PartnerBalanceResponse'
+    PixSettlementResponse:
+      $ref: './schemas/financial.yaml#/PixSettlementResponse'
+
+    CreatePartnerRequest:
+      $ref: './schemas/partner.yaml#/CreatePartnerRequest'
+    PartnerResponse:
+      $ref: './schemas/partner.yaml#/PartnerResponse'
+
+    CreateItemRequest:
+      $ref: './schemas/item.yaml#/CreateItemRequest'
+    ItemResponse:
+      $ref: './schemas/item.yaml#/ItemResponse'
+
+    PurchaseCreateRequest:
+      $ref: './schemas/purchase.yaml#/PurchaseCreateRequest'
+    PurchaseItemRequest:
+      $ref: './schemas/purchase.yaml#/PurchaseItemRequest'
+    PurchaseSplitRequest:
+      $ref: './schemas/purchase.yaml#/PurchaseSplitRequest'
+    PurchaseResponse:
+      $ref: './schemas/purchase.yaml#/PurchaseResponse'
+    PurchaseItemResponse:
+      $ref: './schemas/purchase.yaml#/PurchaseItemResponse'
+    PurchaseSplitResponse:
+      $ref: './schemas/purchase.yaml#/PurchaseSplitResponse'

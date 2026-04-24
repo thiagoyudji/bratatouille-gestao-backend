@@ -1,0 +1,50 @@
+CreateItemRequest:
+  type: object
+  required:
+    - name
+    - type
+    - baseUnit
+  properties:
+    name:
+      type: string
+    type:
+      type: string
+      enum:
+        - INGREDIENT
+        - PACKAGING
+        - FINISHED_PRODUCT
+    baseUnit:
+      type: string
+      enum:
+        - G
+        - ML
+        - UN
+
+ItemResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    name:
+      type: string
+    type:
+      type: string
+      enum:
+        - INGREDIENT
+        - PACKAGING
+        - FINISHED_PRODUCT
+    baseUnit:
+      type: string
+      enum:
+        - G
+        - ML
+        - UN
+    active:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time

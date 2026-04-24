@@ -1,0 +1,26 @@
+PartnerBalanceResponse:
+  type: object
+  properties:
+    partnerId:
+      type: integer
+      format: int64
+    partnerName:
+      type: string
+    balance:
+      type: number
+
+PixSettlementResponse:
+  type: object
+  properties:
+    fromPartnerId:
+      type: integer
+      format: int64
+    fromPartnerName:
+      type: string
+    toPartnerId:
+      type: integer
+      format: int64
+    toPartnerName:
+      type: string
+    amount:
+      type: number

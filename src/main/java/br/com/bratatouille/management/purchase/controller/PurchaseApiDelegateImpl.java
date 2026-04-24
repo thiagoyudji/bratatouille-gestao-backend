@@ -1,20 +1,21 @@
 package br.com.bratatouille.management.purchase.controller;
 
-import br.com.bratatouille.management.purchase.dto.request.PurchaseCreateRequest;
-import br.com.bratatouille.management.purchase.dto.response.PurchaseResponse;
+import br.com.bratatouille.management.generated.api.PurchasesApiDelegate;
+import br.com.bratatouille.management.generated.model.PurchaseCreateRequest;
+import br.com.bratatouille.management.generated.model.PurchaseResponse;
 import br.com.bratatouille.management.purchase.service.PurchaseService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/purchases")
-public class PurchaseController {
+@Component
+public class PurchaseApiDelegateImpl implements PurchasesApiDelegate {
 
     private final PurchaseService purchaseService;
 
-    public PurchaseController(PurchaseService purchaseService) {
+    public PurchaseApiDelegateImpl(PurchaseService purchaseService) {
         this.purchaseService = purchaseService;
     }
 
