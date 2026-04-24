@@ -33,6 +33,11 @@ paths:
   /api/purchases/{id}:
     $ref: './paths/purchases.yaml#/purchaseById'
 
+  /api/productions:
+    $ref: './paths/productions.yaml#/productions'
+  /api/productions/{id}:
+    $ref: './paths/productions.yaml#/productionById'
+
 components:
   schemas:
     StockResponse:
@@ -69,3 +74,8 @@ components:
       $ref: './schemas/purchase.yaml#/PurchaseItemResponse'
     PurchaseSplitResponse:
       $ref: './schemas/purchase.yaml#/PurchaseSplitResponse'
+
+    ProductionCreateRequest:
+      $ref: './schemas/production.yaml#/ProductionCreateRequest'
+    ProductionResponse:
+      $ref: './schemas/production.yaml#/ProductionResponse'
