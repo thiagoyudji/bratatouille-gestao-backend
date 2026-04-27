@@ -19,18 +19,18 @@ public class PartnerApiDelegateImpl implements PartnersApiDelegate {
         this.partnerService = partnerService;
     }
 
-    @PostMapping
-    public ResponseEntity<PartnerResponse> create(@RequestBody CreatePartnerRequest request) {
+    @Override
+    public ResponseEntity<PartnerResponse> createPartner(CreatePartnerRequest request) {
         return ResponseEntity.ok(partnerService.create(request));
     }
 
-    @GetMapping
-    public ResponseEntity<List<PartnerResponse>> findAll() {
+    @Override
+    public ResponseEntity<List<PartnerResponse>> findAllPartners() {
         return ResponseEntity.ok(partnerService.findAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PartnerResponse> findById(@PathVariable Long id) {
+    @Override
+    public ResponseEntity<PartnerResponse> findPartnerById(Long id) {
         return ResponseEntity.ok(partnerService.findById(id));
     }
 }

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
 @Component
 public class ItemApiDelegateImpl implements ItemsApiDelegate {
 
@@ -21,18 +20,18 @@ public class ItemApiDelegateImpl implements ItemsApiDelegate {
         this.itemService = itemService;
     }
 
-    @PostMapping
-    public ResponseEntity<ItemResponse> create(@RequestBody CreateItemRequest request) {
+    @Override
+    public ResponseEntity<ItemResponse> createItem(CreateItemRequest request) {
         return ResponseEntity.ok(itemService.create(request));
     }
 
-    @GetMapping
-    public ResponseEntity<List<ItemResponse>> findAll() {
+    @Override
+    public ResponseEntity<List<ItemResponse>> findAllItems() {
         return ResponseEntity.ok(itemService.findAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ItemResponse> findById(@PathVariable Long id) {
+    @Override
+    public ResponseEntity<ItemResponse> findItemById(Long id) {
         return ResponseEntity.ok(itemService.findById(id));
     }
 }

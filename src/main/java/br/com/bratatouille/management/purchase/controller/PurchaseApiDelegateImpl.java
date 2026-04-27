@@ -19,18 +19,18 @@ public class PurchaseApiDelegateImpl implements PurchasesApiDelegate {
         this.purchaseService = purchaseService;
     }
 
-    @PostMapping
-    public ResponseEntity<PurchaseResponse> create(@RequestBody PurchaseCreateRequest request) {
+    @Override
+    public ResponseEntity<PurchaseResponse> createPurchase(PurchaseCreateRequest request) {
         return ResponseEntity.ok(purchaseService.create(request));
     }
 
-    @GetMapping
-    public ResponseEntity<List<PurchaseResponse>> findAll() {
+    @Override
+    public ResponseEntity<List<PurchaseResponse>> findAllPurchases() {
         return ResponseEntity.ok(purchaseService.findAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PurchaseResponse> findById(@PathVariable Long id) {
+    @Override
+    public ResponseEntity<PurchaseResponse> findPurchaseById(Long id) {
         return ResponseEntity.ok(purchaseService.findById(id));
     }
 }
