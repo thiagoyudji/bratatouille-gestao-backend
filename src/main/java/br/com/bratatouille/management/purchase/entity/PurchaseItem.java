@@ -2,6 +2,7 @@ package br.com.bratatouille.management.purchase.entity;
 
 import br.com.bratatouille.management.common.util.MoneyUtils;
 import br.com.bratatouille.management.item.entity.Item;
+import br.com.bratatouille.management.item.entity.UnitType;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -25,7 +26,7 @@ public class PurchaseItem {
     private BigDecimal quantity;
 
     @Column(nullable = false)
-    private String unit;
+    private UnitType unit;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal totalValue;
@@ -37,10 +38,10 @@ public class PurchaseItem {
             Purchase purchase,
             Item item,
             BigDecimal quantity,
-            String unit,
+            UnitType unit,
             BigDecimal totalValue
     ) {
-        validate(purchase, item, quantity, unit, totalValue);
+        validate(purchase, item, quantity, String.valueOf(unit), totalValue);
 
         this.purchase = purchase;
         this.item = item;
@@ -53,7 +54,7 @@ public class PurchaseItem {
             Purchase purchase,
             Item item,
             BigDecimal quantity,
-            String unit,
+            UnitType unit,
             BigDecimal totalValue
     ) {
         return new PurchaseItem(purchase, item, quantity, unit, totalValue);
@@ -82,6 +83,10 @@ public class PurchaseItem {
             throw new IllegalArgumentException("unit is required");
         }
 
+        if (!unit.equals(item.getBaseUnit().name())) {
+            throw new IllegalArgumentException("purchase item unit must match item base unit");
+        }
+
         if (totalValue == null || totalValue.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("totalValue must be greater than zero");
         }
@@ -103,7 +108,7 @@ public class PurchaseItem {
         return quantity;
     }
 
-    public String getUnit() {
+    public UnitType getUnit() {
         return unit;
     }
 

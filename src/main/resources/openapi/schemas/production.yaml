@@ -47,12 +47,21 @@ ProductionResponse:
       format: int64
     outputItemName:
       type: string
+    productionDate:
+      type: string
+      format: date
     producedQuantity:
       type: number
     totalCost:
       type: number
     unitCost:
       type: number
+    lotId:
+      type: integer
+      format: int64
+    lotExpirationDate:
+      type: string
+      format: date
     items:
       type: array
       items:

@@ -3,6 +3,7 @@ PurchaseCreateRequest:
   required:
     - paidByPartnerId
     - purchaseDate
+    - supplier
     - items
     - splits
   properties:
@@ -12,6 +13,8 @@ PurchaseCreateRequest:
     purchaseDate:
       type: string
       format: date
+    supplier:
+      type: string
     note:
       type: string
     items:
@@ -38,6 +41,10 @@ PurchaseItemRequest:
       type: number
     unit:
       type: string
+      enum:
+        - G
+        - ML
+        - UN
     totalValue:
       type: number
 
@@ -62,6 +69,8 @@ PurchaseResponse:
     purchaseDate:
       type: string
       format: date
+    supplier:
+      type: string
     note:
       type: string
     paidByPartnerId:
@@ -98,6 +107,10 @@ PurchaseItemResponse:
       type: number
     unit:
       type: string
+      enum:
+        - G
+        - ML
+        - UN
     totalValue:
       type: number
 

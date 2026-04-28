@@ -2,6 +2,7 @@ package br.com.bratatouille.management.production.mapper;
 
 import br.com.bratatouille.management.generated.model.ProductionItemResponse;
 import br.com.bratatouille.management.generated.model.ProductionResponse;
+import br.com.bratatouille.management.lot.entity.Lot;
 import br.com.bratatouille.management.production.entity.Production;
 import br.com.bratatouille.management.production.entity.ProductionItem;
 import org.springframework.stereotype.Component;
@@ -19,15 +20,25 @@ public class ProductionMapper {
         response.setRecipeName(production.getRecipe().getName());
         response.setOutputItemId(production.getRecipe().getOutputItem().getId());
         response.setOutputItemName(production.getRecipe().getOutputItem().getName());
+        response.setProductionDate(production.getProductionDate());
         response.setProducedQuantity(production.getProducedQuantity());
         response.setTotalCost(production.getTotalCost());
         response.setUnitCost(production.getUnitCost());
+
+        Lot lot = production.getLot();
+
+        if (lot != null) {
+            response.setLotId(lot.getId());
+            response.setLotExpirationDate(lot.getExpirationDate());
+        }
+
         response.setItems(
                 production.getItems()
                         .stream()
                         .map(this::toItemResponse)
                         .toList()
         );
+
         response.setCreatedAt(production.getCreatedAt().atOffset(ZoneOffset.UTC));
 
         return response;

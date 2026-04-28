@@ -2,6 +2,7 @@ package br.com.bratatouille.management.recipe.entity;
 
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.recipe.domain.ItemQuantityData;
+import br.com.bratatouille.management.item.entity.ItemType;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -84,6 +85,10 @@ public class Recipe {
         this.items.clear();
 
         itemsData.forEach(itemData -> {
+            if (!Boolean.TRUE.equals(itemData.item().isActive())) {
+                throw new IllegalArgumentException("recipe input item must be active");
+            }
+
             RecipeItem recipeItem = RecipeItem.create(
                     this,
                     itemData.item(),
@@ -102,6 +107,14 @@ public class Recipe {
 
         if (outputItem == null) {
             throw new IllegalArgumentException("outputItem is required");
+        }
+
+        if (!Boolean.TRUE.equals(outputItem.isActive())) {
+            throw new IllegalArgumentException("outputItem must be active");
+        }
+
+        if (outputItem.getType() != ItemType.FINISHED_PRODUCT) {
+            throw new IllegalArgumentException("recipe output item must be a finished product");
         }
     }
 

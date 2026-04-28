@@ -7,6 +7,7 @@ import br.com.bratatouille.management.generated.model.StockResponse;
 import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import br.com.bratatouille.management.generated.model.StockAlertResponse;
 
 import java.util.List;
 
@@ -37,5 +38,10 @@ public class StockApiDelegateImpl implements StocksApiDelegate {
     @Override
     public ResponseEntity<StockResponse> adjustStockManually(Long itemId, AdjustStockRequest request) {
         return ResponseEntity.ok(stockService.adjustManually(itemId, request.getQuantity()));
+    }
+
+    @Override
+    public ResponseEntity<List<StockAlertResponse>> findStockAlerts() {
+        return ResponseEntity.ok(stockService.findAlerts());
     }
 }

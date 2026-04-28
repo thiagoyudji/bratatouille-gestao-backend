@@ -4,6 +4,8 @@ import br.com.bratatouille.management.financial.domain.PartnerBalance;
 import br.com.bratatouille.management.financial.domain.PixTransfer;
 import br.com.bratatouille.management.generated.model.PartnerBalanceResponse;
 import br.com.bratatouille.management.generated.model.PixSettlementResponse;
+import br.com.bratatouille.management.financial.domain.PartnerFinancialSummaryAccumulator;
+import br.com.bratatouille.management.generated.model.FinancialPartnerSummaryResponse;
 import br.com.bratatouille.management.partner.entity.Partner;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,18 @@ public class FinancialMapper {
         response.setToPartnerId(transfer.to().getId());
         response.setToPartnerName(transfer.to().getName());
         response.setAmount(transfer.amount());
+
+        return response;
+    }
+
+    public FinancialPartnerSummaryResponse toPartnerSummaryResponse(PartnerFinancialSummaryAccumulator accumulator) {
+        FinancialPartnerSummaryResponse response = new FinancialPartnerSummaryResponse();
+
+        response.setPartnerId(accumulator.getPartner().getId());
+        response.setPartnerName(accumulator.getPartner().getName());
+        response.setTotalPaid(accumulator.getTotalPaid());
+        response.setTotalOwed(accumulator.getTotalOwed());
+        response.setBalance(accumulator.getBalance());
 
         return response;
     }

@@ -1,6 +1,7 @@
 package br.com.bratatouille.management.purchase.entity;
 
 import br.com.bratatouille.management.common.util.MoneyUtils;
+import br.com.bratatouille.management.item.entity.UnitType;
 import br.com.bratatouille.management.partner.entity.Partner;
 import br.com.bratatouille.management.purchase.domain.PurchaseItemData;
 import br.com.bratatouille.management.purchase.domain.PurchaseSplitData;
@@ -37,6 +38,9 @@ public class Purchase {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private String supplier;
+
     @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<PurchaseItem> items = new ArrayList<>();
 
@@ -46,17 +50,19 @@ public class Purchase {
     protected Purchase() {
     }
 
-    private Purchase(LocalDate purchaseDate, Partner paidBy, String note) {
-        validateHeader(purchaseDate, paidBy);
+    private Purchase(LocalDate purchaseDate, Partner paidBy, String supplier, String note) {
+        validateHeader(purchaseDate, paidBy, supplier);
 
         this.purchaseDate = purchaseDate;
         this.paidBy = paidBy;
+        this.supplier = supplier;
         this.note = note;
     }
 
     public static Purchase create(
             LocalDate purchaseDate,
             Partner paidBy,
+            String supplier,
             String note,
             List<PurchaseItemData> itemsData,
             List<PurchaseSplitData> splitsData
@@ -66,7 +72,7 @@ public class Purchase {
         validateSplitsData(splitsData);
         validateDuplicatedSplitPartners(splitsData);
 
-        Purchase purchase = new Purchase(purchaseDate, paidBy, note);
+        Purchase purchase = new Purchase(purchaseDate, paidBy, supplier, note);
 
         purchase.addItems(itemsData);
         purchase.defineTotalFromItems();
@@ -104,7 +110,7 @@ public class Purchase {
                     this,
                     itemData.item(),
                     itemData.quantity(),
-                    itemData.unit(),
+                    UnitType.valueOf(itemData.unit()),
                     itemData.totalValue()
             );
 
@@ -144,13 +150,17 @@ public class Purchase {
         }
     }
 
-    private static void validateHeader(LocalDate purchaseDate, Partner paidBy) {
+    private static void validateHeader(LocalDate purchaseDate, Partner paidBy, String supplier) {
         if (purchaseDate == null) {
             throw new IllegalArgumentException("purchaseDate is required");
         }
 
         if (paidBy == null) {
             throw new IllegalArgumentException("paidBy is required");
+        }
+
+        if (supplier == null || supplier.isBlank()) {
+            throw new IllegalArgumentException("supplier is required");
         }
     }
 
@@ -196,5 +206,9 @@ public class Purchase {
 
     public List<PurchaseSplit> getSplits() {
         return Collections.unmodifiableList(splits);
+    }
+
+    public String getSupplier() {
+        return supplier;
     }
 }

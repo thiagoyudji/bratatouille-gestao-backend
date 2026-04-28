@@ -1,0 +1,87 @@
+OperationalCostCreateRequest:
+  type: object
+  required:
+    - costDate
+    - category
+    - paidByPartnerId
+    - amount
+    - splits
+  properties:
+    costDate:
+      type: string
+      format: date
+    category:
+      type: string
+      enum:
+        - FIXED
+        - VARIABLE
+        - FINANCIAL
+    paidByPartnerId:
+      type: integer
+      format: int64
+    amount:
+      type: number
+    description:
+      type: string
+    splits:
+      type: array
+      items:
+        $ref: '#/OperationalCostSplitRequest'
+
+OperationalCostSplitRequest:
+  type: object
+  required:
+    - partnerId
+    - amount
+  properties:
+    partnerId:
+      type: integer
+      format: int64
+    amount:
+      type: number
+
+OperationalCostResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    costDate:
+      type: string
+      format: date
+    category:
+      type: string
+      enum:
+        - FIXED
+        - VARIABLE
+        - FINANCIAL
+    paidByPartnerId:
+      type: integer
+      format: int64
+    paidByPartnerName:
+      type: string
+    amount:
+      type: number
+    description:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    splits:
+      type: array
+      items:
+        $ref: '#/OperationalCostSplitResponse'
+
+OperationalCostSplitResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    partnerId:
+      type: integer
+      format: int64
+    partnerName:
+      type: string
+    owedAmount:
+      type: number

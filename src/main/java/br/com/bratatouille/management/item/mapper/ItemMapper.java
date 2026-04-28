@@ -17,6 +17,8 @@ public class ItemMapper {
         response.setType(ItemResponse.TypeEnum.valueOf(item.getType().name()));
         response.setBaseUnit(ItemResponse.BaseUnitEnum.valueOf(item.getBaseUnit().name()));
         response.setActive(item.isActive());
+        response.setLowStockThreshold(item.getLowStockThreshold());
+        response.setCriticalStockThreshold(item.getCriticalStockThreshold());
 
         response.setCreatedAt(item.getCreatedAt().atOffset(ZoneOffset.UTC));
         response.setUpdatedAt(item.getUpdatedAt().atOffset(ZoneOffset.UTC));

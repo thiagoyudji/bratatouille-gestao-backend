@@ -27,7 +27,9 @@ public class ItemService {
         Item item = new Item(
                 request.getName(),
                 ItemType.valueOf(request.getType().name()),
-                UnitType.valueOf(request.getBaseUnit().name())
+                UnitType.valueOf(request.getBaseUnit().name()),
+                request.getLowStockThreshold(),
+                request.getCriticalStockThreshold()
         );
 
         Item saved = itemRepository.save(item);

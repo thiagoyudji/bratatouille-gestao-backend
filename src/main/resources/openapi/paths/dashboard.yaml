@@ -1,0 +1,26 @@
+dashboardOverview:
+  get:
+    tags:
+      - Dashboard
+    operationId: getDashboardOverview
+    summary: Get operational dashboard overview
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Dashboard overview
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/dashboard.yaml#/DashboardOverviewResponse'

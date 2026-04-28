@@ -17,32 +17,32 @@ public class StockMovementService {
         this.stockMovementRepository = stockMovementRepository;
     }
 
-    public void registerPurchaseEntry(Item item, BigDecimal quantity) {
-        registerMovement(item, quantity, StockMovementType.PURCHASE_ENTRY);
+    public void registerPurchaseEntry(Item item, BigDecimal quantity, Long purchaseId) {
+        registerMovement(item, quantity, StockMovementType.PURCHASE_ENTRY, purchaseId);
     }
 
-    public void registerProductionConsumption(Item item, BigDecimal quantity) {
-        registerMovement(item, quantity.negate(), StockMovementType.PRODUCTION_CONSUMPTION);
+    public void registerProductionConsumption(Item item, BigDecimal quantity, Long productionId) {
+        registerMovement(item, quantity.negate(), StockMovementType.PRODUCTION_CONSUMPTION, productionId);
     }
 
-    public void registerProductionOutput(Item item, BigDecimal quantity) {
-        registerMovement(item, quantity, StockMovementType.PRODUCTION_OUTPUT);
+    public void registerProductionOutput(Item item, BigDecimal quantity, Long productionId) {
+        registerMovement(item, quantity, StockMovementType.PRODUCTION_OUTPUT, productionId);
     }
 
     public void registerManualAdjustment(Item item, BigDecimal difference) {
-        registerMovement(item, difference, StockMovementType.MANUAL_ADJUSTMENT);
+        registerMovement(item, difference, StockMovementType.MANUAL_ADJUSTMENT, null);
     }
 
-    private void registerMovement(Item item, BigDecimal quantity, StockMovementType type) {
-        StockMovement movement = new StockMovement(item, quantity, type);
+    public void registerSaleOutput(Item item, BigDecimal quantity, Long salesOrderId) {
+        registerMovement(item, quantity.negate(), StockMovementType.SALE_OUTPUT, salesOrderId);
+    }
+
+    public void registerOperationalLoss(Item item, BigDecimal quantity, Long operationalLossId) {
+        registerMovement(item, quantity.negate(), StockMovementType.LOSS_OUTPUT, operationalLossId);
+    }
+
+    private void registerMovement(Item item, BigDecimal quantity, StockMovementType type, Long sourceId) {
+        StockMovement movement = new StockMovement(item, quantity, type, sourceId);
         stockMovementRepository.save(movement);
-    }
-
-    public void registerSaleOutput(Item item, BigDecimal quantity) {
-        registerMovement(item, quantity.negate(), StockMovementType.SALE_OUTPUT);
-    }
-
-    public void registerOperationalLoss(Item item, BigDecimal quantity) {
-        registerMovement(item, quantity.negate(), StockMovementType.LOSS_OUTPUT);
     }
 }

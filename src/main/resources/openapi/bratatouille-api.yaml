@@ -17,6 +17,17 @@ paths:
     $ref: './paths/financial.yaml#/balances'
   /api/financial/pix-settlement:
     $ref: './paths/financial.yaml#/pixSettlement'
+  /api/financial/balances/period:
+    $ref: './paths/financial.yaml#/balancesByPeriod'
+  /api/financial/pix-settlement/period:
+    $ref: './paths/financial.yaml#/pixSettlementByPeriod'
+  /api/financial/summary/period:
+    $ref: './paths/financial.yaml#/summaryByPeriod'
+
+  /api/financial-closings:
+    $ref: './paths/financial-closing.yaml#/closePeriod'
+  /api/financial-closings/{id}:
+    $ref: './paths/financial-closing.yaml#/getClosed'
 
   /api/partners:
     $ref: './paths/partners.yaml#/partners'
@@ -70,6 +81,28 @@ paths:
   /api/production-simulation:
     $ref: './paths/production-simulation.yaml#/productionSimulation'
 
+  /api/lots:
+    $ref: './paths/lots.yaml#/lots'
+  /api/lots/{id}:
+    $ref: './paths/lots.yaml#/lotById'
+  /api/lots/production/{productionId}:
+    $ref: './paths/lots.yaml#/lotByProductionId'
+  /api/lots/item/{itemId}:
+    $ref: './paths/lots.yaml#/lotsByItemId'
+  /api/lots/expiring:
+    $ref: './paths/lots.yaml#/expiringLots'
+
+  /api/stocks/alerts:
+    $ref: './paths/stocks.yaml#/stockAlerts'
+
+  /api/dashboard/overview:
+    $ref: './paths/dashboard.yaml#/dashboardOverview'
+
+  /api/operational-costs:
+    $ref: './paths/operational-costs.yaml#/operationalCosts'
+  /api/operational-costs/{id}:
+    $ref: './paths/operational-costs.yaml#/operationalCostById'
+
 components:
   schemas:
     StockResponse:
@@ -83,6 +116,13 @@ components:
       $ref: './schemas/financial.yaml#/PartnerBalanceResponse'
     PixSettlementResponse:
       $ref: './schemas/financial.yaml#/PixSettlementResponse'
+    FinancialPartnerSummaryResponse:
+      $ref: './schemas/financial.yaml#/FinancialPartnerSummaryResponse'
+    FinancialSummaryResponse:
+      $ref: './schemas/financial.yaml#/FinancialSummaryResponse'
+
+    FinancialClosingResponse:
+      $ref: './schemas/financial-closing.yaml#/FinancialClosingResponse'
 
     CreatePartnerRequest:
       $ref: './schemas/partner.yaml#/CreatePartnerRequest'
@@ -153,3 +193,21 @@ components:
       $ref: './schemas/production-simulation.yaml#/ProductionSimulationItemResponse'
     ProductionSimulationResponse:
       $ref: './schemas/production-simulation.yaml#/ProductionSimulationResponse'
+
+    LotResponse:
+      $ref: './schemas/lot.yaml#/LotResponse'
+
+    StockAlertResponse:
+      $ref: './schemas/stock.yaml#/StockAlertResponse'
+
+    DashboardOverviewResponse:
+      $ref: './schemas/dashboard.yaml#/DashboardOverviewResponse'
+
+    OperationalCostCreateRequest:
+      $ref: './schemas/operational-cost.yaml#/OperationalCostCreateRequest'
+    OperationalCostSplitRequest:
+      $ref: './schemas/operational-cost.yaml#/OperationalCostSplitRequest'
+    OperationalCostResponse:
+      $ref: './schemas/operational-cost.yaml#/OperationalCostResponse'
+    OperationalCostSplitResponse:
+      $ref: './schemas/operational-cost.yaml#/OperationalCostSplitResponse'

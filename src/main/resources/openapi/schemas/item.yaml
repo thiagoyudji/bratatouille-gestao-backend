@@ -19,6 +19,10 @@ CreateItemRequest:
         - G
         - ML
         - UN
+    lowStockThreshold:
+      type: number
+    criticalStockThreshold:
+      type: number
 
 ItemResponse:
   type: object
@@ -42,6 +46,10 @@ ItemResponse:
         - UN
     active:
       type: boolean
+    lowStockThreshold:
+      type: number
+    criticalStockThreshold:
+      type: number
     createdAt:
       type: string
       format: date-time

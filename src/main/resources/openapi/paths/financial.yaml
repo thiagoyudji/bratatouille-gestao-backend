@@ -29,3 +29,88 @@ pixSettlement:
               type: array
               items:
                 $ref: '../schemas/financial.yaml#/PixSettlementResponse'
+
+balancesByPeriod:
+  get:
+    tags:
+      - Financial
+    operationId: getBalancesByPeriod
+    summary: Get partner balances by period
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Partner balances by period found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/financial.yaml#/PartnerBalanceResponse'
+
+pixSettlementByPeriod:
+  get:
+    tags:
+      - Financial
+    operationId: getPixSettlementByPeriod
+    summary: Get Pix settlement suggestion by period
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Pix settlement by period found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/financial.yaml#/PixSettlementResponse'
+
+summaryByPeriod:
+  get:
+    tags:
+      - Financial
+    operationId: getFinancialSummaryByPeriod
+    summary: Get financial summary by period
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Financial summary by period found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/financial.yaml#/FinancialSummaryResponse'

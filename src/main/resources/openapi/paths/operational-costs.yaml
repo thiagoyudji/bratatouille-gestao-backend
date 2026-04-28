@@ -1,0 +1,55 @@
+operationalCosts:
+  get:
+    tags:
+      - OperationalCosts
+    operationId: findAllOperationalCosts
+    summary: List operational costs
+    responses:
+      '200':
+        description: Operational costs found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/operational-cost.yaml#/OperationalCostResponse'
+
+  post:
+    tags:
+      - OperationalCosts
+    operationId: createOperationalCost
+    summary: Create operational cost
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/operational-cost.yaml#/OperationalCostCreateRequest'
+    responses:
+      '200':
+        description: Operational cost created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/operational-cost.yaml#/OperationalCostResponse'
+
+operationalCostById:
+  get:
+    tags:
+      - OperationalCosts
+    operationId: findOperationalCostById
+    summary: Find operational cost by id
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Operational cost found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/operational-cost.yaml#/OperationalCostResponse'

@@ -1,0 +1,45 @@
+closePeriod:
+  post:
+    tags:
+      - FinancialClosing
+    operationId: closeFinancialPeriod
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Closed
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/financial-closing.yaml#/FinancialClosingResponse'
+
+getClosed:
+  get:
+    tags:
+      - FinancialClosing
+    operationId: getFinancialClosing
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Closed summary
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/financial.yaml#/FinancialSummaryResponse'

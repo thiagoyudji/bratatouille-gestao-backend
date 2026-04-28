@@ -23,7 +23,7 @@ public class PurchaseMapper {
         response.setTotalAmount(purchase.getTotalAmount());
         response.setNote(purchase.getNote());
         response.setCreatedAt(purchase.getCreatedAt().atOffset(ZoneOffset.UTC));
-
+        response.setSupplier(purchase.getSupplier());
         response.setItems(
                 purchase.getItems()
                         .stream()
@@ -48,7 +48,7 @@ public class PurchaseMapper {
         response.setItemId(item.getItem().getId());
         response.setItemName(item.getItem().getName());
         response.setQuantity(item.getQuantity());
-        response.setUnit(item.getUnit());
+        response.setUnit(PurchaseItemResponse.UnitEnum.valueOf((item.getUnit().toString())));
         response.setTotalValue(item.getTotalValue());
 
         return response;

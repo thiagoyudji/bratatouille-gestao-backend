@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -24,6 +25,12 @@ public class Item {
 
     private Boolean active;
 
+    @Column(precision = 19, scale = 3)
+    private BigDecimal lowStockThreshold;
+
+    @Column(precision = 19, scale = 3)
+    private BigDecimal criticalStockThreshold;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -33,68 +40,74 @@ public class Item {
     public Item() {
     }
 
-    public Item(String name, ItemType type, UnitType baseUnit) {
+    public Item(
+            String name,
+            ItemType type,
+            UnitType baseUnit,
+            BigDecimal lowStockThreshold,
+            BigDecimal criticalStockThreshold
+    ) {
+        validateThresholds(lowStockThreshold, criticalStockThreshold);
+
         this.name = name;
         this.type = type;
         this.baseUnit = baseUnit;
+        this.lowStockThreshold = lowStockThreshold;
+        this.criticalStockThreshold = criticalStockThreshold;
         this.active = true;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+    }
+
+    private void validateThresholds(BigDecimal lowStockThreshold, BigDecimal criticalStockThreshold) {
+        if (lowStockThreshold != null && lowStockThreshold.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("lowStockThreshold cannot be negative");
+        }
+
+        if (criticalStockThreshold != null && criticalStockThreshold.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("criticalStockThreshold cannot be negative");
+        }
+
+        if (
+                lowStockThreshold != null
+                        && criticalStockThreshold != null
+                        && criticalStockThreshold.compareTo(lowStockThreshold) > 0
+        ) {
+            throw new IllegalArgumentException("criticalStockThreshold cannot be greater than lowStockThreshold");
+        }
     }
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public ItemType getType() {
         return type;
     }
 
-    public void setType(ItemType type) {
-        this.type = type;
-    }
-
     public UnitType getBaseUnit() {
         return baseUnit;
-    }
-
-    public void setBaseUnit(UnitType baseUnit) {
-        this.baseUnit = baseUnit;
     }
 
     public Boolean isActive() {
         return active;
     }
 
-    public void setActive(Boolean active) {
-        this.active = active;
+    public BigDecimal getLowStockThreshold() {
+        return lowStockThreshold;
+    }
+
+    public BigDecimal getCriticalStockThreshold() {
+        return criticalStockThreshold;
     }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

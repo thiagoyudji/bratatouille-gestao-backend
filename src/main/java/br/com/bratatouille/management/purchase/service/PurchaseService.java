@@ -9,6 +9,7 @@ import br.com.bratatouille.management.item.repository.ItemRepository;
 import br.com.bratatouille.management.partner.entity.Partner;
 import br.com.bratatouille.management.partner.repository.PartnerRepository;
 import br.com.bratatouille.management.purchase.domain.PurchaseItemData;
+import br.com.bratatouille.management.purchase.domain.PurchaseSplitData;
 import br.com.bratatouille.management.purchase.entity.Purchase;
 import br.com.bratatouille.management.purchase.entity.PurchaseItem;
 import br.com.bratatouille.management.purchase.mapper.PurchaseMapper;
@@ -16,7 +17,6 @@ import br.com.bratatouille.management.purchase.repository.PurchaseRepository;
 import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import br.com.bratatouille.management.purchase.domain.PurchaseSplitData;
 
 import java.util.List;
 
@@ -45,7 +45,10 @@ public class PurchaseService {
 
     @Transactional
     public PurchaseResponse create(PurchaseCreateRequest request) {
-        Partner payer = getValidPartner(request.getPaidByPartnerId());
+        validate(request);
+
+        Partner payer = partnerRepository.findById(request.getPaidByPartnerId())
+                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
 
         List<PurchaseItemData> items = request.getItems()
                 .stream()
@@ -60,16 +63,31 @@ public class PurchaseService {
         Purchase purchase = Purchase.create(
                 request.getPurchaseDate(),
                 payer,
+                request.getSupplier(),
                 request.getNote(),
                 items,
                 splits
         );
 
-        Purchase savedPurchase = purchaseRepository.save(purchase);
+        Purchase saved = purchaseRepository.save(purchase);
 
-        registerStockEntries(savedPurchase);
+        registerStockEntries(saved);
 
-        return purchaseMapper.toResponse(savedPurchase);
+        return purchaseMapper.toResponse(saved);
+    }
+
+    public List<PurchaseResponse> findAll() {
+        return purchaseRepository.findAll()
+                .stream()
+                .map(purchaseMapper::toResponse)
+                .toList();
+    }
+
+    public PurchaseResponse findById(Long id) {
+        Purchase purchase = purchaseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
+
+        return purchaseMapper.toResponse(purchase);
     }
 
     private PurchaseItemData toItemData(PurchaseItemRequest request) {
@@ -79,13 +97,14 @@ public class PurchaseService {
         return new PurchaseItemData(
                 item,
                 request.getQuantity(),
-                request.getUnit(),
+                String.valueOf(request.getUnit()),
                 request.getTotalValue()
         );
     }
 
     private PurchaseSplitData toSplitData(PurchaseSplitRequest request) {
-        Partner partner = getValidPartner(request.getPartnerId());
+        Partner partner = partnerRepository.findById(request.getPartnerId())
+                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
 
         return new PurchaseSplitData(
                 partner,
@@ -93,39 +112,35 @@ public class PurchaseService {
         );
     }
 
-    private Partner getValidPartner(Long partnerId) {
-        Partner partner = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
-
-        if (!Boolean.TRUE.equals(partner.getActive())) {
-            throw new IllegalArgumentException("Partner is inactive");
+    private void validate(PurchaseCreateRequest request) {
+        if (request.getPaidByPartnerId() == null) {
+            throw new IllegalArgumentException("paidByPartnerId is required");
         }
 
-        return partner;
+        if (request.getPurchaseDate() == null) {
+            throw new IllegalArgumentException("purchaseDate is required");
+        }
+
+        if (request.getSupplier() == null || request.getSupplier().isBlank()) {
+            throw new IllegalArgumentException("supplier is required");
+        }
+
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalArgumentException("items are required");
+        }
+
+        if (request.getSplits() == null || request.getSplits().isEmpty()) {
+            throw new IllegalArgumentException("splits are required");
+        }
     }
 
     private void registerStockEntries(Purchase purchase) {
         for (PurchaseItem item : purchase.getItems()) {
             stockService.addFromPurchase(
                     item.getItem(),
-                    item.getQuantity()
+                    item.getQuantity(),
+                    purchase.getId()
             );
         }
-    }
-
-    @Transactional(readOnly = true)
-    public List<PurchaseResponse> findAll() {
-        return purchaseRepository.findAll()
-                .stream()
-                .map(purchaseMapper::toResponse)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public PurchaseResponse findById(Long id) {
-        Purchase purchase = purchaseRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
-
-        return purchaseMapper.toResponse(purchase);
     }
 }

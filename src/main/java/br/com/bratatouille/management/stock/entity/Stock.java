@@ -5,21 +5,35 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
+@Table(
+        name = "stocks",
+        uniqueConstraints = @UniqueConstraint(name = "uk_stock_item", columnNames = "item_id")
+)
 public class Stock {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(optional = false)
+    @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
+    @Column(nullable = false, precision = 19, scale = 3)
     private BigDecimal quantity;
 
     protected Stock() {
     }
 
     public Stock(Item item, BigDecimal quantity) {
+        if (item == null) {
+            throw new IllegalArgumentException("item is required");
+        }
+
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("quantity cannot be negative");
+        }
+
         this.item = item;
         this.quantity = quantity;
     }

@@ -1,0 +1,50 @@
+DashboardOverviewResponse:
+  type: object
+  properties:
+    startDate:
+      type: string
+      format: date
+    endDate:
+      type: string
+      format: date
+
+    totalOrders:
+      type: integer
+      format: int64
+
+    totalRevenue:
+      type: number
+    totalCost:
+      type: number
+    grossProfit:
+      type: number
+    grossMarginPercentage:
+      type: number
+
+    totalOperationalCost:
+      type: number
+    fixedOperationalCost:
+      type: number
+    variableOperationalCost:
+      type: number
+    financialOperationalCost:
+      type: number
+
+    netProfit:
+      type: number
+    netMarginPercentage:
+      type: number
+
+    criticalStockAlerts:
+      type: integer
+      format: int64
+    lowStockAlerts:
+      type: integer
+      format: int64
+    nearZeroStockAlerts:
+      type: integer
+      format: int64
+
+    openPartnerBalances:
+      type: integer
+      format: int64

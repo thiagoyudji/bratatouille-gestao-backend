@@ -1,9 +1,12 @@
 package br.com.bratatouille.management.stock.service;
 
+import br.com.bratatouille.management.generated.model.StockAlertResponse;
 import br.com.bratatouille.management.generated.model.StockMovementResponse;
 import br.com.bratatouille.management.generated.model.StockResponse;
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.repository.ItemRepository;
+import br.com.bratatouille.management.stock.domain.StockAlertData;
+import br.com.bratatouille.management.stock.domain.StockAlertStatus;
 import br.com.bratatouille.management.stock.entity.Stock;
 import br.com.bratatouille.management.stock.mapper.StockMapper;
 import br.com.bratatouille.management.stock.repository.StockMovementRepository;
@@ -59,36 +62,58 @@ public class StockService {
     }
 
     @Transactional
-    public void addFromPurchase(Item item, BigDecimal quantity) {
+    public void addFromPurchase(Item item, BigDecimal quantity, Long purchaseId) {
         Stock stock = getOrCreateWithLock(item);
 
         stock.add(quantity);
 
         stockRepository.save(stock);
 
-        stockMovementService.registerPurchaseEntry(item, quantity);
+        stockMovementService.registerPurchaseEntry(item, quantity, purchaseId);
     }
 
     @Transactional
-    public void removeForProduction(Item item, BigDecimal quantity) {
+    public void removeForProduction(Item item, BigDecimal quantity, Long productionId) {
         Stock stock = getExistingWithLock(item);
 
         stock.remove(quantity);
 
         stockRepository.save(stock);
 
-        stockMovementService.registerProductionConsumption(item, quantity);
+        stockMovementService.registerProductionConsumption(item, quantity, productionId);
     }
 
     @Transactional
-    public void addFromProduction(Item item, BigDecimal quantity) {
+    public void addFromProduction(Item item, BigDecimal quantity, Long productionId) {
         Stock stock = getOrCreateWithLock(item);
 
         stock.add(quantity);
 
         stockRepository.save(stock);
 
-        stockMovementService.registerProductionOutput(item, quantity);
+        stockMovementService.registerProductionOutput(item, quantity, productionId);
+    }
+
+    @Transactional
+    public void removeForSale(Item item, BigDecimal quantity, Long salesOrderId) {
+        Stock stock = getExistingWithLock(item);
+
+        stock.remove(quantity);
+
+        stockRepository.save(stock);
+
+        stockMovementService.registerSaleOutput(item, quantity, salesOrderId);
+    }
+
+    @Transactional
+    public void removeForOperationalLoss(Item item, BigDecimal quantity, Long operationalLossId) {
+        Stock stock = getExistingWithLock(item);
+
+        stock.remove(quantity);
+
+        stockRepository.save(stock);
+
+        stockMovementService.registerOperationalLoss(item, quantity, operationalLossId);
     }
 
     @Transactional
@@ -105,9 +130,21 @@ public class StockService {
 
         Stock saved = stockRepository.save(stock);
 
-        stockMovementService.registerManualAdjustment(item, difference);
+        if (difference.compareTo(BigDecimal.ZERO) != 0) {
+            stockMovementService.registerManualAdjustment(item, difference);
+        }
 
         return stockMapper.toResponse(saved);
+    }
+
+    public List<StockAlertResponse> findAlerts() {
+        return stockRepository.findAll()
+                .stream()
+                .filter(stock -> stock.getItem().isActive())
+                .map(this::buildAlert)
+                .filter(alert -> alert != null)
+                .map(stockMapper::toAlertResponse)
+                .toList();
     }
 
     private Stock getExistingWithLock(Item item) {
@@ -125,25 +162,41 @@ public class StockService {
                 });
     }
 
-    @Transactional
-    public void removeForSale(Item item, BigDecimal quantity) {
-        Stock stock = getExistingWithLock(item);
+    private StockAlertData buildAlert(Stock stock) {
+        BigDecimal quantity = stock.getQuantity();
+        BigDecimal lowThreshold = stock.getItem().getLowStockThreshold();
+        BigDecimal criticalThreshold = stock.getItem().getCriticalStockThreshold();
 
-        stock.remove(quantity);
+        if (quantity.compareTo(BigDecimal.ZERO) == 0) {
+            return new StockAlertData(
+                    stock.getItem(),
+                    quantity,
+                    lowThreshold,
+                    criticalThreshold,
+                    StockAlertStatus.NEAR_ZERO
+            );
+        }
 
-        stockRepository.save(stock);
+        if (criticalThreshold != null && quantity.compareTo(criticalThreshold) <= 0) {
+            return new StockAlertData(
+                    stock.getItem(),
+                    quantity,
+                    lowThreshold,
+                    criticalThreshold,
+                    StockAlertStatus.CRITICAL
+            );
+        }
 
-        stockMovementService.registerSaleOutput(item, quantity);
-    }
+        if (lowThreshold != null && quantity.compareTo(lowThreshold) <= 0) {
+            return new StockAlertData(
+                    stock.getItem(),
+                    quantity,
+                    lowThreshold,
+                    criticalThreshold,
+                    StockAlertStatus.LOW
+            );
+        }
 
-    @Transactional
-    public void removeForOperationalLoss(Item item, BigDecimal quantity) {
-        Stock stock = getExistingWithLock(item);
-
-        stock.remove(quantity);
-
-        stockRepository.save(stock);
-
-        stockMovementService.registerOperationalLoss(item, quantity);
+        return null;
     }
 }

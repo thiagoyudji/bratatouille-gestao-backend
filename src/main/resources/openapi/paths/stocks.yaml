@@ -74,3 +74,19 @@ stockMovements:
               type: array
               items:
                 $ref: '../schemas/stock.yaml#/StockMovementResponse'
+
+stockAlerts:
+  get:
+    tags:
+      - Stocks
+    operationId: findStockAlerts
+    summary: List stock alerts
+    responses:
+      '200':
+        description: Stock alerts found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/stock.yaml#/StockAlertResponse'

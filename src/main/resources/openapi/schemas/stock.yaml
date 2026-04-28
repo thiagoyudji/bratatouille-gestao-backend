@@ -38,6 +38,9 @@ StockMovementResponse:
     id:
       type: integer
       format: int64
+    sourceId:
+      type: integer
+      format: int64
     itemId:
       type: integer
       format: int64
@@ -57,3 +60,36 @@ StockMovementResponse:
     createdAt:
       type: string
       format: date-time
+
+StockAlertResponse:
+  type: object
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    itemType:
+      type: string
+      enum:
+        - INGREDIENT
+        - PACKAGING
+        - FINISHED_PRODUCT
+    baseUnit:
+      type: string
+      enum:
+        - G
+        - ML
+        - UN
+    currentQuantity:
+      type: number
+    lowStockThreshold:
+      type: number
+    criticalStockThreshold:
+      type: number
+    status:
+      type: string
+      enum:
+        - LOW
+        - CRITICAL
+        - NEAR_ZERO

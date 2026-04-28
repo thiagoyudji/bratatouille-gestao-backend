@@ -24,3 +24,42 @@ PixSettlementResponse:
       type: string
     amount:
       type: number
+
+FinancialPartnerSummaryResponse:
+  type: object
+  properties:
+    partnerId:
+      type: integer
+      format: int64
+    partnerName:
+      type: string
+    totalPaid:
+      type: number
+    totalOwed:
+      type: number
+    balance:
+      type: number
+
+FinancialSummaryResponse:
+  type: object
+  properties:
+    startDate:
+      type: string
+      format: date
+    endDate:
+      type: string
+      format: date
+    totalPurchases:
+      type: number
+    totalOperationalCosts:
+      type: number
+    totalSpent:
+      type: number
+    partners:
+      type: array
+      items:
+        $ref: '#/FinancialPartnerSummaryResponse'
+    pixSettlement:
+      type: array
+      items:
+        $ref: '#/PixSettlementResponse'

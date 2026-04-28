@@ -23,44 +23,42 @@ import java.util.List;
 public class OperationalLossService {
 
     private final OperationalLossRepository operationalLossRepository;
+    private final OperationalLossMapper operationalLossMapper;
     private final ItemRepository itemRepository;
     private final PurchaseItemRepository purchaseItemRepository;
     private final ProductionRepository productionRepository;
     private final StockService stockService;
     private final SellableStockService sellableStockService;
-    private final OperationalLossMapper operationalLossMapper;
 
     public OperationalLossService(
             OperationalLossRepository operationalLossRepository,
+            OperationalLossMapper operationalLossMapper,
             ItemRepository itemRepository,
             PurchaseItemRepository purchaseItemRepository,
             ProductionRepository productionRepository,
             StockService stockService,
-            SellableStockService sellableStockService,
-            OperationalLossMapper operationalLossMapper
+            SellableStockService sellableStockService
     ) {
         this.operationalLossRepository = operationalLossRepository;
+        this.operationalLossMapper = operationalLossMapper;
         this.itemRepository = itemRepository;
         this.purchaseItemRepository = purchaseItemRepository;
         this.productionRepository = productionRepository;
         this.stockService = stockService;
         this.sellableStockService = sellableStockService;
-        this.operationalLossMapper = operationalLossMapper;
     }
 
     @Transactional
     public OperationalLossResponse create(OperationalLossCreateRequest request) {
-        validateRequest(request);
+        validate(request);
 
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
         BigDecimal unitCost = findUnitCost(item);
 
-        stockService.removeForOperationalLoss(item, request.getQuantity());
-
-        if (item.getType() == ItemType.FINISHED_PRODUCT) {
-            sellableStockService.decreaseAfterLossIfConfigured(item, request.getQuantity());
+        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Cost history not found for item: " + item.getName());
         }
 
         OperationalLoss loss = OperationalLoss.create(
@@ -73,6 +71,12 @@ public class OperationalLossService {
         );
 
         OperationalLoss saved = operationalLossRepository.save(loss);
+
+        stockService.removeForOperationalLoss(item, request.getQuantity(), saved.getId());
+
+        if (item.getType() == ItemType.FINISHED_PRODUCT) {
+            sellableStockService.decreaseAfterLossIfConfigured(item, request.getQuantity());
+        }
 
         return operationalLossMapper.toResponse(saved);
     }
@@ -91,11 +95,15 @@ public class OperationalLossService {
         return operationalLossMapper.toResponse(loss);
     }
 
-    private void validateRequest(OperationalLossCreateRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("request is required");
+    private BigDecimal findUnitCost(Item item) {
+        if (item.getType() == ItemType.FINISHED_PRODUCT) {
+            return productionRepository.findAverageUnitCostByOutputItemId(item.getId());
         }
 
+        return purchaseItemRepository.findAverageUnitCostByItemId(item.getId());
+    }
+
+    private void validate(OperationalLossCreateRequest request) {
         if (request.getLossDate() == null) {
             throw new IllegalArgumentException("lossDate is required");
         }
@@ -104,30 +112,12 @@ public class OperationalLossService {
             throw new IllegalArgumentException("itemId is required");
         }
 
-        if (request.getQuantity() == null || request.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.getQuantity() == null || request.getQuantity().signum() <= 0) {
             throw new IllegalArgumentException("quantity must be greater than zero");
         }
 
         if (request.getReason() == null) {
             throw new IllegalArgumentException("reason is required");
         }
-
-        try {
-            OperationalLossReason.valueOf(String.valueOf(request.getReason()));
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("Invalid operational loss reason");
-        }
-    }
-
-    private BigDecimal findUnitCost(Item item) {
-        BigDecimal unitCost = item.getType() == ItemType.FINISHED_PRODUCT
-                ? productionRepository.findAverageUnitCostByOutputItemId(item.getId())
-                : purchaseItemRepository.findAverageUnitCostByItemId(item.getId());
-
-        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Item has no cost history: " + item.getName());
-        }
-
-        return unitCost;
     }
 }
