@@ -1,18 +1,17 @@
 package br.com.bratatouille.management.stock.service;
 
-import br.com.bratatouille.management.item.entity.Item;
-import br.com.bratatouille.management.stock.entity.Stock;
-import br.com.bratatouille.management.stock.mapper.StockMapper;
-import br.com.bratatouille.management.stock.repository.StockRepository;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-
-import br.com.bratatouille.management.item.repository.ItemRepository;
 import br.com.bratatouille.management.generated.model.StockMovementResponse;
 import br.com.bratatouille.management.generated.model.StockResponse;
+import br.com.bratatouille.management.item.entity.Item;
+import br.com.bratatouille.management.item.repository.ItemRepository;
+import br.com.bratatouille.management.stock.entity.Stock;
+import br.com.bratatouille.management.stock.mapper.StockMapper;
 import br.com.bratatouille.management.stock.repository.StockMovementRepository;
+import br.com.bratatouille.management.stock.repository.StockRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -38,8 +37,6 @@ public class StockService {
         this.itemRepository = itemRepository;
     }
 
-
-
     public List<StockResponse> findAll() {
         return stockRepository.findAll()
                 .stream()
@@ -61,8 +58,9 @@ public class StockService {
                 .toList();
     }
 
+    @Transactional
     public void addFromPurchase(Item item, BigDecimal quantity) {
-        Stock stock = getOrCreate(item);
+        Stock stock = getOrCreateWithLock(item);
 
         stock.add(quantity);
 
@@ -71,8 +69,9 @@ public class StockService {
         stockMovementService.registerPurchaseEntry(item, quantity);
     }
 
+    @Transactional
     public void removeForProduction(Item item, BigDecimal quantity) {
-        Stock stock = getOrCreate(item);
+        Stock stock = getExistingWithLock(item);
 
         stock.remove(quantity);
 
@@ -81,8 +80,9 @@ public class StockService {
         stockMovementService.registerProductionConsumption(item, quantity);
     }
 
+    @Transactional
     public void addFromProduction(Item item, BigDecimal quantity) {
-        Stock stock = getOrCreate(item);
+        Stock stock = getOrCreateWithLock(item);
 
         stock.add(quantity);
 
@@ -91,11 +91,12 @@ public class StockService {
         stockMovementService.registerProductionOutput(item, quantity);
     }
 
+    @Transactional
     public StockResponse adjustManually(Long itemId, BigDecimal newQuantity) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        Stock stock = getOrCreate(item);
+        Stock stock = getOrCreateWithLock(item);
 
         BigDecimal previousQuantity = stock.getQuantity();
         BigDecimal difference = newQuantity.subtract(previousQuantity);
@@ -109,14 +110,40 @@ public class StockService {
         return stockMapper.toResponse(saved);
     }
 
-    private Stock getOrCreate(Item item) {
-        return stockRepository.findByItemId(item.getId())
+    private Stock getExistingWithLock(Item item) {
+        return stockRepository.findByItemIdForUpdate(item.getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Stock not found for item: " + item.getName()
+                ));
+    }
+
+    private Stock getOrCreateWithLock(Item item) {
+        return stockRepository.findByItemIdForUpdate(item.getId())
                 .orElseGet(() -> {
-                    Stock stock = new Stock(
-                            item,
-                            BigDecimal.ZERO
-                    );
+                    Stock stock = new Stock(item, BigDecimal.ZERO);
                     return stockRepository.save(stock);
                 });
+    }
+
+    @Transactional
+    public void removeForSale(Item item, BigDecimal quantity) {
+        Stock stock = getExistingWithLock(item);
+
+        stock.remove(quantity);
+
+        stockRepository.save(stock);
+
+        stockMovementService.registerSaleOutput(item, quantity);
+    }
+
+    @Transactional
+    public void removeForOperationalLoss(Item item, BigDecimal quantity) {
+        Stock stock = getExistingWithLock(item);
+
+        stock.remove(quantity);
+
+        stockRepository.save(stock);
+
+        stockMovementService.registerOperationalLoss(item, quantity);
     }
 }

@@ -1,0 +1,41 @@
+SalesSummaryResponse:
+  type: object
+  properties:
+    startDate:
+      type: string
+      format: date
+    endDate:
+      type: string
+      format: date
+    totalOrders:
+      type: integer
+      format: int64
+    totalAmount:
+      type: number
+    totalCost:
+      type: number
+    grossProfit:
+      type: number
+    averageTicket:
+      type: number
+    grossMarginPercentage:
+      type: number
+
+SalesProductPerformanceResponse:
+  type: object
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    soldQuantity:
+      type: number
+    totalAmount:
+      type: number
+    totalCost:
+      type: number
+    grossProfit:
+      type: number
+    grossMarginPercentage:
+      type: number

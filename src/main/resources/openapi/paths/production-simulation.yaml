@@ -1,0 +1,25 @@
+productionSimulation:
+  get:
+    tags:
+      - ProductionSimulation
+    operationId: simulateProduction
+    summary: Simulate production
+    parameters:
+      - name: recipeId
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: quantity
+        in: query
+        required: true
+        schema:
+          type: number
+    responses:
+      '200':
+        description: Simulation result
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/production-simulation.yaml#/ProductionSimulationResponse'

@@ -1,0 +1,83 @@
+SalesOrderItemRequest:
+  type: object
+  required:
+    - itemId
+    - quantity
+    - unitPrice
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    quantity:
+      type: number
+    unitPrice:
+      type: number
+
+SalesOrderCreateRequest:
+  type: object
+  required:
+    - saleDate
+    - items
+  properties:
+    saleDate:
+      type: string
+      format: date
+    customerName:
+      type: string
+    note:
+      type: string
+    items:
+      type: array
+      items:
+        $ref: '#/SalesOrderItemRequest'
+
+SalesOrderItemResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    quantity:
+      type: number
+    unitPrice:
+      type: number
+    totalPrice:
+      type: number
+    unitCost:
+      type: number
+    totalCost:
+      type: number
+    grossProfit:
+      type: number
+
+SalesOrderResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    saleDate:
+      type: string
+      format: date
+    customerName:
+      type: string
+    note:
+      type: string
+    totalAmount:
+      type: number
+    totalCost:
+      type: number
+    grossProfit:
+      type: number
+    items:
+      type: array
+      items:
+        $ref: '#/SalesOrderItemResponse'
+    createdAt:
+      type: string
+      format: date-time

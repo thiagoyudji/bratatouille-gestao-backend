@@ -1,16 +1,4 @@
-ProductionCreateRequest:
-  type: object
-  required:
-    - recipeId
-    - producedQuantity
-  properties:
-    recipeId:
-      type: integer
-      format: int64
-    producedQuantity:
-      type: number
-
-ProductionItemResponse:
+ProductionSimulationItemResponse:
   type: object
   properties:
     itemId:
@@ -18,7 +6,7 @@ ProductionItemResponse:
       format: int64
     itemName:
       type: string
-    consumedQuantity:
+    requiredQuantity:
       type: number
     usableQuantity:
       type: number
@@ -26,17 +14,18 @@ ProductionItemResponse:
       type: number
     yieldPercentage:
       type: number
+    currentStock:
+      type: number
+    missingQuantity:
+      type: number
     unitCost:
       type: number
     totalCost:
       type: number
 
-ProductionResponse:
+ProductionSimulationResponse:
   type: object
   properties:
-    id:
-      type: integer
-      format: int64
     recipeId:
       type: integer
       format: int64
@@ -47,16 +36,11 @@ ProductionResponse:
       format: int64
     outputItemName:
       type: string
-    producedQuantity:
+    quantity:
       type: number
-    totalCost:
-      type: number
-    unitCost:
+    estimatedTotalCost:
       type: number
     items:
       type: array
       items:
-        $ref: '#/ProductionItemResponse'
-    createdAt:
-      type: string
-      format: date-time
+        $ref: '#/ProductionSimulationItemResponse'

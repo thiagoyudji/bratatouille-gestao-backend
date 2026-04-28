@@ -1,5 +1,6 @@
 package br.com.bratatouille.management.production.entity;
 
+import br.com.bratatouille.management.production.domain.ProductionItemData;
 import br.com.bratatouille.management.recipe.entity.Recipe;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -7,6 +8,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Table(name = "productions")
@@ -32,6 +36,9 @@ public class Production {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "production", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<ProductionItem> items = new ArrayList<>();
+
     protected Production() {
     }
 
@@ -52,16 +59,36 @@ public class Production {
     public static Production create(
             Recipe recipe,
             BigDecimal producedQuantity,
-            BigDecimal totalCost
+            BigDecimal totalCost,
+            List<ProductionItemData> itemsData
     ) {
+        if (itemsData == null || itemsData.isEmpty()) {
+            throw new IllegalArgumentException("production must have at least one item");
+        }
+
         BigDecimal unitCost = totalCost.divide(producedQuantity, 6, RoundingMode.HALF_UP);
 
-        return new Production(
+        Production production = new Production(
                 recipe,
                 producedQuantity,
                 totalCost,
                 unitCost
         );
+
+        itemsData.forEach(itemData -> production.items.add(
+                ProductionItem.create(
+                        production,
+                        itemData.item(),
+                        itemData.consumedQuantity(),
+                        itemData.usableQuantity(),
+                        itemData.lossQuantity(),
+                        itemData.yieldPercentage(),
+                        itemData.unitCost(),
+                        itemData.totalCost()
+                )
+        ));
+
+        return production;
     }
 
     private static void validate(
@@ -109,5 +136,9 @@ public class Production {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public List<ProductionItem> getItems() {
+        return Collections.unmodifiableList(items);
     }
 }

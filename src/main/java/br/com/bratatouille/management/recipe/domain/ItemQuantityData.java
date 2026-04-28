@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 
 public record ItemQuantityData(
         Item item,
-        BigDecimal quantity
+        BigDecimal quantity,
+        BigDecimal yieldPercentage
 ) {
 }

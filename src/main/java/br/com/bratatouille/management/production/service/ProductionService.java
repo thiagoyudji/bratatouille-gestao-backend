@@ -2,6 +2,7 @@ package br.com.bratatouille.management.production.service;
 
 import br.com.bratatouille.management.generated.model.ProductionCreateRequest;
 import br.com.bratatouille.management.generated.model.ProductionResponse;
+import br.com.bratatouille.management.production.domain.ProductionItemData;
 import br.com.bratatouille.management.production.entity.Production;
 import br.com.bratatouille.management.production.mapper.ProductionMapper;
 import br.com.bratatouille.management.production.repository.ProductionRepository;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -41,21 +44,30 @@ public class ProductionService {
 
     @Transactional
     public ProductionResponse create(ProductionCreateRequest request) {
+        validateRequest(request);
+
         Recipe recipe = recipeRepository.findById(request.getRecipeId())
                 .orElseThrow(() -> new RuntimeException("Recipe not found"));
 
+        validateRecipe(recipe);
+
         BigDecimal producedQuantity = request.getProducedQuantity();
 
-        BigDecimal totalCost = calculateTotalCost(recipe, producedQuantity);
+        List<ProductionItemData> itemsData = buildProductionItemsData(recipe, producedQuantity);
 
-        consumeRecipeItems(recipe, producedQuantity);
+        BigDecimal totalCost = itemsData.stream()
+                .map(ProductionItemData::totalCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        consumeRecipeItems(itemsData);
 
         stockService.addFromProduction(recipe.getOutputItem(), producedQuantity);
 
         Production production = Production.create(
                 recipe,
                 producedQuantity,
-                totalCost
+                totalCost,
+                itemsData
         );
 
         Production saved = productionRepository.save(production);
@@ -77,39 +89,76 @@ public class ProductionService {
         return productionMapper.toResponse(production);
     }
 
-    private BigDecimal calculateTotalCost(Recipe recipe, BigDecimal producedQuantity) {
-        BigDecimal totalCost = BigDecimal.ZERO;
-
-        for (RecipeItem recipeItem : recipe.getItems()) {
-            BigDecimal consumedQuantity = recipeItem.getQuantity()
-                    .multiply(producedQuantity);
-
-            BigDecimal averageUnitCost = purchaseItemRepository
-                    .findAverageUnitCostByItemId(recipeItem.getItem().getId());
-
-            if (averageUnitCost == null || averageUnitCost.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException(
-                        "Item has no cost history: " + recipeItem.getItem().getId()
-                );
-            }
-
-            BigDecimal itemCost = averageUnitCost.multiply(consumedQuantity);
-
-            totalCost = totalCost.add(itemCost);
+    private void validateRequest(ProductionCreateRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("request is required");
         }
 
-        return totalCost;
+        if (request.getRecipeId() == null) {
+            throw new IllegalArgumentException("recipeId is required");
+        }
+
+        if (request.getProducedQuantity() == null || request.getProducedQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("producedQuantity must be greater than zero");
+        }
     }
 
-    private void consumeRecipeItems(Recipe recipe, BigDecimal producedQuantity) {
-        for (RecipeItem recipeItem : recipe.getItems()) {
-            BigDecimal consumedQuantity = recipeItem.getQuantity()
-                    .multiply(producedQuantity);
+    private void validateRecipe(Recipe recipe) {
+        if (!Boolean.TRUE.equals(recipe.getActive())) {
+            throw new IllegalArgumentException("Recipe is inactive");
+        }
 
-            stockService.removeForProduction(
-                    recipeItem.getItem(),
-                    consumedQuantity
+        if (recipe.getItems() == null || recipe.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Recipe has no items");
+        }
+    }
+
+    private List<ProductionItemData> buildProductionItemsData(Recipe recipe, BigDecimal producedQuantity) {
+        return recipe.getItems()
+                .stream()
+                .sorted(Comparator.comparing(recipeItem -> recipeItem.getItem().getId()))
+                .map(recipeItem -> buildProductionItemData(recipeItem, producedQuantity))
+                .toList();
+    }
+
+    private ProductionItemData buildProductionItemData(RecipeItem recipeItem, BigDecimal producedQuantity) {
+        BigDecimal usableQuantity = recipeItem.getQuantity()
+                .multiply(producedQuantity);
+
+        BigDecimal consumedQuantity = usableQuantity.divide(
+                recipeItem.getYieldPercentage(),
+                6,
+                RoundingMode.HALF_UP
+        );
+
+        BigDecimal lossQuantity = consumedQuantity.subtract(usableQuantity);
+
+        BigDecimal averageUnitCost = purchaseItemRepository
+                .findAverageUnitCostByItemId(recipeItem.getItem().getId());
+
+        if (averageUnitCost == null || averageUnitCost.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException(
+                    "Item has no cost history: " + recipeItem.getItem().getName()
             );
         }
+
+        BigDecimal totalCost = averageUnitCost.multiply(consumedQuantity);
+
+        return new ProductionItemData(
+                recipeItem.getItem(),
+                consumedQuantity,
+                usableQuantity,
+                lossQuantity,
+                recipeItem.getYieldPercentage(),
+                averageUnitCost,
+                totalCost
+        );
+    }
+
+    private void consumeRecipeItems(List<ProductionItemData> itemsData) {
+        itemsData.forEach(itemData -> stockService.removeForProduction(
+                itemData.item(),
+                itemData.consumedQuantity()
+        ));
     }
 }

@@ -12,6 +12,10 @@ public enum StockMovementType {
     PRODUCTION_OUTPUT,
 
     // Ajuste manual (erro, correção, perda não controlada)
-    MANUAL_ADJUSTMENT
+    MANUAL_ADJUSTMENT,
+
+    SALE_OUTPUT,
+
+    LOSS_OUTPUT
 
 }

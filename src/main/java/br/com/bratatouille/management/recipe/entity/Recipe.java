@@ -55,17 +55,40 @@ public class Recipe {
         validateOutputItemIsNotInput(outputItem, itemsData);
 
         Recipe recipe = new Recipe(name, outputItem);
-        recipe.addItems(itemsData);
+        recipe.replaceItems(itemsData);
 
         return recipe;
     }
 
-    private void addItems(List<ItemQuantityData> itemsData) {
+    public void update(String name, Item outputItem, List<ItemQuantityData> itemsData) {
+        validateHeader(name, outputItem);
+        validateItemsData(itemsData);
+        validateDuplicatedItems(itemsData);
+        validateOutputItemIsNotInput(outputItem, itemsData);
+
+        this.name = name;
+        this.outputItem = outputItem;
+
+        replaceItems(itemsData);
+    }
+
+    public void activate() {
+        this.active = true;
+    }
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    private void replaceItems(List<ItemQuantityData> itemsData) {
+        this.items.clear();
+
         itemsData.forEach(itemData -> {
             RecipeItem recipeItem = RecipeItem.create(
                     this,
                     itemData.item(),
-                    itemData.quantity()
+                    itemData.quantity(),
+                    itemData.yieldPercentage()
             );
 
             this.items.add(recipeItem);

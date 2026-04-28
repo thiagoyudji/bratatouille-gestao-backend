@@ -1,0 +1,55 @@
+salesOrders:
+  get:
+    tags:
+      - SalesOrders
+    operationId: findAllSalesOrders
+    summary: List sales orders
+    responses:
+      '200':
+        description: Sales orders found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/sales-order.yaml#/SalesOrderResponse'
+
+  post:
+    tags:
+      - SalesOrders
+    operationId: createSalesOrder
+    summary: Create sales order
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/sales-order.yaml#/SalesOrderCreateRequest'
+    responses:
+      '200':
+        description: Sales order created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/sales-order.yaml#/SalesOrderResponse'
+
+salesOrderById:
+  get:
+    tags:
+      - SalesOrders
+    operationId: findSalesOrderById
+    summary: Find sales order by id
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Sales order found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/sales-order.yaml#/SalesOrderResponse'

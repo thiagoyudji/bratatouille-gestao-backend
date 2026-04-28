@@ -1,0 +1,62 @@
+sellableStocks:
+  get:
+    tags:
+      - SellableStocks
+    operationId: findAllSellableStocks
+    summary: List sellable stocks
+    responses:
+      '200':
+        description: Sellable stocks found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/sellable-stock.yaml#/SellableStockResponse'
+
+sellableStockByItemId:
+  get:
+    tags:
+      - SellableStocks
+    operationId: findSellableStockByItemId
+    summary: Find sellable stock by item id
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Sellable stock found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/sellable-stock.yaml#/SellableStockResponse'
+
+  put:
+    tags:
+      - SellableStocks
+    operationId: upsertSellableStock
+    summary: Create or update sellable stock
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/sellable-stock.yaml#/SellableStockUpsertRequest'
+    responses:
+      '200':
+        description: Sellable stock updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/sellable-stock.yaml#/SellableStockResponse'

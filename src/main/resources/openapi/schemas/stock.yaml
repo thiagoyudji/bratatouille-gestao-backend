@@ -52,6 +52,8 @@ StockMovementResponse:
         - PRODUCTION_CONSUMPTION
         - PRODUCTION_OUTPUT
         - MANUAL_ADJUSTMENT
+        - SALE_OUTPUT
+        - LOSS_OUTPUT
     createdAt:
       type: string
       format: date-time

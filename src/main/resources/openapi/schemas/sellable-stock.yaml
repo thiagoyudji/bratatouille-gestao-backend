@@ -1,0 +1,29 @@
+SellableStockUpsertRequest:
+  type: object
+  required:
+    - infinite
+    - enabled
+  properties:
+    availableQuantity:
+      type: number
+    infinite:
+      type: boolean
+    enabled:
+      type: boolean
+
+SellableStockResponse:
+  type: object
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    availableQuantity:
+      type: number
+    currentStockQuantity:
+      type: number
+    infinite:
+      type: boolean
+    enabled:
+      type: boolean

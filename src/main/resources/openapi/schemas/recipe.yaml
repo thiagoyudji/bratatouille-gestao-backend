@@ -1,0 +1,89 @@
+RecipeItemRequest:
+  type: object
+  required:
+    - itemId
+    - quantity
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    quantity:
+      type: number
+    yieldPercentage:
+      type: number
+      default: 1
+
+RecipeCreateRequest:
+  type: object
+  required:
+    - name
+    - outputItemId
+    - items
+  properties:
+    name:
+      type: string
+    outputItemId:
+      type: integer
+      format: int64
+    items:
+      type: array
+      items:
+        $ref: '#/RecipeItemRequest'
+
+RecipeUpdateRequest:
+  type: object
+  required:
+    - name
+    - outputItemId
+    - items
+  properties:
+    name:
+      type: string
+    outputItemId:
+      type: integer
+      format: int64
+    items:
+      type: array
+      items:
+        $ref: '#/RecipeItemRequest'
+
+RecipeItemResponse:
+  type: object
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    quantity:
+      type: number
+    yieldPercentage:
+      type: number
+    unit:
+      type: string
+
+RecipeResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    name:
+      type: string
+    outputItemId:
+      type: integer
+      format: int64
+    outputItemName:
+      type: string
+    active:
+      type: boolean
+    items:
+      type: array
+      items:
+        $ref: '#/RecipeItemResponse'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time

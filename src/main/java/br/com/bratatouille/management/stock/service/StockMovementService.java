@@ -22,7 +22,7 @@ public class StockMovementService {
     }
 
     public void registerProductionConsumption(Item item, BigDecimal quantity) {
-        registerMovement(item, quantity, StockMovementType.PRODUCTION_CONSUMPTION);
+        registerMovement(item, quantity.negate(), StockMovementType.PRODUCTION_CONSUMPTION);
     }
 
     public void registerProductionOutput(Item item, BigDecimal quantity) {
@@ -36,5 +36,13 @@ public class StockMovementService {
     private void registerMovement(Item item, BigDecimal quantity, StockMovementType type) {
         StockMovement movement = new StockMovement(item, quantity, type);
         stockMovementRepository.save(movement);
+    }
+
+    public void registerSaleOutput(Item item, BigDecimal quantity) {
+        registerMovement(item, quantity.negate(), StockMovementType.SALE_OUTPUT);
+    }
+
+    public void registerOperationalLoss(Item item, BigDecimal quantity) {
+        registerMovement(item, quantity.negate(), StockMovementType.LOSS_OUTPUT);
     }
 }

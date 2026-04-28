@@ -38,6 +38,38 @@ paths:
   /api/productions/{id}:
     $ref: './paths/productions.yaml#/productionById'
 
+  /api/recipes:
+    $ref: './paths/recipes.yaml#/recipes'
+  /api/recipes/{id}:
+    $ref: './paths/recipes.yaml#/recipeById'
+  /api/recipes/{id}/activate:
+    $ref: './paths/recipes.yaml#/activateRecipe'
+  /api/recipes/{id}/deactivate:
+    $ref: './paths/recipes.yaml#/deactivateRecipe'
+
+  /api/sellable-stocks:
+    $ref: './paths/sellable-stocks.yaml#/sellableStocks'
+  /api/sellable-stocks/{itemId}:
+    $ref: './paths/sellable-stocks.yaml#/sellableStockByItemId'
+
+  /api/sales-orders:
+    $ref: './paths/sales-orders.yaml#/salesOrders'
+  /api/sales-orders/{id}:
+    $ref: './paths/sales-orders.yaml#/salesOrderById'
+
+  /api/sales-reports/summary:
+    $ref: './paths/sales-reports.yaml#/salesSummary'
+  /api/sales-reports/products:
+    $ref: './paths/sales-reports.yaml#/salesProductPerformance'
+
+  /api/operational-losses:
+    $ref: './paths/operational-losses.yaml#/operationalLosses'
+  /api/operational-losses/{id}:
+    $ref: './paths/operational-losses.yaml#/operationalLossById'
+
+  /api/production-simulation:
+    $ref: './paths/production-simulation.yaml#/productionSimulation'
+
 components:
   schemas:
     StockResponse:
@@ -79,3 +111,45 @@ components:
       $ref: './schemas/production.yaml#/ProductionCreateRequest'
     ProductionResponse:
       $ref: './schemas/production.yaml#/ProductionResponse'
+    ProductionItemResponse:
+      $ref: './schemas/production.yaml#/ProductionItemResponse'
+
+    RecipeItemRequest:
+      $ref: './schemas/recipe.yaml#/RecipeItemRequest'
+    RecipeCreateRequest:
+      $ref: './schemas/recipe.yaml#/RecipeCreateRequest'
+    RecipeUpdateRequest:
+      $ref: './schemas/recipe.yaml#/RecipeUpdateRequest'
+    RecipeItemResponse:
+      $ref: './schemas/recipe.yaml#/RecipeItemResponse'
+    RecipeResponse:
+      $ref: './schemas/recipe.yaml#/RecipeResponse'
+
+    SellableStockUpsertRequest:
+      $ref: './schemas/sellable-stock.yaml#/SellableStockUpsertRequest'
+    SellableStockResponse:
+      $ref: './schemas/sellable-stock.yaml#/SellableStockResponse'
+
+    SalesOrderCreateRequest:
+      $ref: './schemas/sales-order.yaml#/SalesOrderCreateRequest'
+    SalesOrderItemRequest:
+      $ref: './schemas/sales-order.yaml#/SalesOrderItemRequest'
+    SalesOrderResponse:
+      $ref: './schemas/sales-order.yaml#/SalesOrderResponse'
+    SalesOrderItemResponse:
+      $ref: './schemas/sales-order.yaml#/SalesOrderItemResponse'
+
+    SalesSummaryResponse:
+      $ref: './schemas/sales-report.yaml#/SalesSummaryResponse'
+    SalesProductPerformanceResponse:
+      $ref: './schemas/sales-report.yaml#/SalesProductPerformanceResponse'
+
+    OperationalLossCreateRequest:
+      $ref: './schemas/operational-loss.yaml#/OperationalLossCreateRequest'
+    OperationalLossResponse:
+      $ref: './schemas/operational-loss.yaml#/OperationalLossResponse'
+
+    ProductionSimulationItemResponse:
+      $ref: './schemas/production-simulation.yaml#/ProductionSimulationItemResponse'
+    ProductionSimulationResponse:
+      $ref: './schemas/production-simulation.yaml#/ProductionSimulationResponse'

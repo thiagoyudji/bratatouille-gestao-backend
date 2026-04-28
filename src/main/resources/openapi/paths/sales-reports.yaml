@@ -1,0 +1,55 @@
+salesSummary:
+  get:
+    tags:
+      - SalesReports
+    operationId: getSalesSummary
+    summary: Get sales summary
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Sales summary
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/sales-report.yaml#/SalesSummaryResponse'
+
+salesProductPerformance:
+  get:
+    tags:
+      - SalesReports
+    operationId: getSalesProductPerformance
+    summary: Get sales product performance
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Sales product performance
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/sales-report.yaml#/SalesProductPerformanceResponse'
