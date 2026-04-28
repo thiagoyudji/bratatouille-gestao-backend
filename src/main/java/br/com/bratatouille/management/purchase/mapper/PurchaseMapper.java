@@ -56,7 +56,7 @@ public class PurchaseMapper {
 
     public PurchaseSplitResponse toSplitResponse(PurchaseSplit split) {
         PurchaseSplitResponse response = new PurchaseSplitResponse();
-
+        response.setPercentage(split.getPercentage());
         response.setId(split.getId());
         response.setPartnerId(split.getPartner().getId());
         response.setPartnerName(split.getPartner().getName());

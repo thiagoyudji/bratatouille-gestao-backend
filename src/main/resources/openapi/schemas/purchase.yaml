@@ -5,7 +5,6 @@ PurchaseCreateRequest:
     - purchaseDate
     - supplier
     - items
-    - splits
   properties:
     paidByPartnerId:
       type: integer
@@ -52,12 +51,12 @@ PurchaseSplitRequest:
   type: object
   required:
     - partnerId
-    - amount
+    - percentage
   properties:
     partnerId:
       type: integer
       format: int64
-    amount:
+    percentage:
       type: number
 
 PurchaseResponse:
@@ -125,5 +124,7 @@ PurchaseSplitResponse:
       format: int64
     partnerName:
       type: string
+    percentage:
+      type: number
     owedAmount:
       type: number

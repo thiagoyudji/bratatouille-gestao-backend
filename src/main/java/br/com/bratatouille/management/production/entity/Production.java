@@ -129,12 +129,12 @@ public class Production {
             throw new IllegalArgumentException("producedQuantity must be > 0");
         }
 
-        if (totalCost == null || totalCost.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("totalCost must be > 0");
+        if (totalCost == null || totalCost.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("totalCost cannot be negative");
         }
 
-        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("unitCost must be > 0");
+        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("unitCost cannot be negative");
         }
     }
 

@@ -123,7 +123,8 @@ public class Purchase {
             PurchaseSplit split = PurchaseSplit.create(
                     this,
                     splitData.partner(),
-                    splitData.amount()
+                    splitData.percentage(),
+                    splitData.owedAmount()
             );
 
             this.splits.add(split);

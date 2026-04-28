@@ -6,6 +6,7 @@ import br.com.bratatouille.management.item.entity.UnitType;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+
 @Entity
 @Table(name = "purchase_items")
 public class PurchaseItem {

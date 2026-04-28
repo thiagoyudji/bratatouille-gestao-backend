@@ -16,6 +16,7 @@ public class PartnerMapper {
         response.setId(partner.getId());
         response.setName(partner.getName());
         response.setActive(partner.getActive());
+        response.setDefaultSplitPercentage(partner.getDefaultSplitPercentage());
         response.setCreatedAt(partner.getCreatedAt().atOffset(ZoneOffset.UTC));
 
         response.setRoles(

@@ -4,9 +4,8 @@ import br.com.bratatouille.management.partner.entity.Partner;
 
 import java.math.BigDecimal;
 
-public record PurchaseSplitData(
+public record PartnerPercentageData(
         Partner partner,
-        BigDecimal percentage,
-        BigDecimal owedAmount
+        BigDecimal percentage
 ) {
 }

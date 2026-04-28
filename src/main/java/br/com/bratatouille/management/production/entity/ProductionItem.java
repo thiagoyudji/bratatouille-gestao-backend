@@ -98,12 +98,12 @@ public class ProductionItem {
             throw new IllegalArgumentException("yieldPercentage must be between 0 and 1");
         }
 
-        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("unitCost must be > 0");
+        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("unitCost cannot be negative");
         }
 
-        if (totalCost == null || totalCost.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("totalCost must be > 0");
+        if (totalCost == null || totalCost.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("totalCost cannot be negative");
         }
 
         return new ProductionItem(

@@ -2,9 +2,12 @@ CreatePartnerRequest:
   type: object
   required:
     - name
+    - defaultSplitPercentage
   properties:
     name:
       type: string
+    defaultSplitPercentage:
+      type: number
     roles:
       type: array
       uniqueItems: true
@@ -26,6 +29,8 @@ PartnerResponse:
       type: string
     active:
       type: boolean
+    defaultSplitPercentage:
+      type: number
     createdAt:
       type: string
       format: date-time

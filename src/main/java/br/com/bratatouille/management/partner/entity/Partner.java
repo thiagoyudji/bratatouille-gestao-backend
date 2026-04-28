@@ -3,6 +3,7 @@ package br.com.bratatouille.management.partner.entity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,6 +20,9 @@ public class Partner {
 
     private Boolean active;
 
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal defaultSplitPercentage;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -34,50 +38,57 @@ public class Partner {
     public Partner() {
     }
 
-    public Partner(String name, Boolean active, LocalDateTime createdAt, Set<PartnerRole> roles) {
+    public Partner(
+            String name,
+            Boolean active,
+            BigDecimal defaultSplitPercentage,
+            LocalDateTime createdAt,
+            Set<PartnerRole> roles
+    ) {
+        validate(name, defaultSplitPercentage);
+
         this.name = name;
         this.active = active;
+        this.defaultSplitPercentage = defaultSplitPercentage;
         this.createdAt = createdAt;
         this.roles = roles;
+    }
+
+    private static void validate(String name, BigDecimal defaultSplitPercentage) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("partner name is required");
+        }
+
+        if (defaultSplitPercentage == null || defaultSplitPercentage.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("defaultSplitPercentage must be zero or greater");
+        }
+
+        if (defaultSplitPercentage.compareTo(new BigDecimal("100.00")) > 0) {
+            throw new IllegalArgumentException("defaultSplitPercentage cannot be greater than 100");
+        }
     }
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public Boolean getActive() {
         return active;
     }
 
-    public void setActive(Boolean active) {
-        this.active = active;
+    public BigDecimal getDefaultSplitPercentage() {
+        return defaultSplitPercentage;
     }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public Set<PartnerRole> getRoles() {
         return roles;
-    }
-
-    public void setRoles(Set<PartnerRole> roles) {
-        this.roles = roles;
     }
 }

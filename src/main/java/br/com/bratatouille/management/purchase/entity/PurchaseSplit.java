@@ -22,31 +22,42 @@ public class PurchaseSplit {
     @JoinColumn(name = "partner_id", nullable = false)
     private Partner partner;
 
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal percentage;
+
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal owedAmount;
 
     protected PurchaseSplit() {
     }
 
-    private PurchaseSplit(Purchase purchase, Partner partner, BigDecimal owedAmount) {
-        validate(purchase, partner, owedAmount);
+    private PurchaseSplit(
+            Purchase purchase,
+            Partner partner,
+            BigDecimal percentage,
+            BigDecimal owedAmount
+    ) {
+        validate(purchase, partner, percentage, owedAmount);
 
         this.purchase = purchase;
         this.partner = partner;
+        this.percentage = percentage;
         this.owedAmount = MoneyUtils.normalize(owedAmount);
     }
 
     public static PurchaseSplit create(
             Purchase purchase,
             Partner partner,
+            BigDecimal percentage,
             BigDecimal owedAmount
     ) {
-        return new PurchaseSplit(purchase, partner, owedAmount);
+        return new PurchaseSplit(purchase, partner, percentage, owedAmount);
     }
 
     private static void validate(
             Purchase purchase,
             Partner partner,
+            BigDecimal percentage,
             BigDecimal owedAmount
     ) {
         if (purchase == null) {
@@ -55,6 +66,10 @@ public class PurchaseSplit {
 
         if (partner == null) {
             throw new IllegalArgumentException("partner is required");
+        }
+
+        if (percentage == null || percentage.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("percentage must be greater than zero");
         }
 
         if (owedAmount == null || owedAmount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -72,6 +87,10 @@ public class PurchaseSplit {
 
     public Partner getPartner() {
         return partner;
+    }
+
+    public BigDecimal getPercentage() {
+        return percentage;
     }
 
     public BigDecimal getOwedAmount() {

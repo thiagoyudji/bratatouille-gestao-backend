@@ -1,5 +1,6 @@
 package br.com.bratatouille.management.purchase.service;
 
+import br.com.bratatouille.management.common.util.MoneyUtils;
 import br.com.bratatouille.management.generated.model.PurchaseCreateRequest;
 import br.com.bratatouille.management.generated.model.PurchaseItemRequest;
 import br.com.bratatouille.management.generated.model.PurchaseResponse;
@@ -8,7 +9,9 @@ import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.repository.ItemRepository;
 import br.com.bratatouille.management.partner.entity.Partner;
 import br.com.bratatouille.management.partner.repository.PartnerRepository;
+import br.com.bratatouille.management.purchase.domain.PartnerPercentageData;
 import br.com.bratatouille.management.purchase.domain.PurchaseItemData;
+import br.com.bratatouille.management.purchase.domain.PurchaseSplitCalculator;
 import br.com.bratatouille.management.purchase.domain.PurchaseSplitData;
 import br.com.bratatouille.management.purchase.entity.Purchase;
 import br.com.bratatouille.management.purchase.entity.PurchaseItem;
@@ -18,6 +21,7 @@ import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -50,15 +54,18 @@ public class PurchaseService {
         Partner payer = partnerRepository.findById(request.getPaidByPartnerId())
                 .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
 
+        if (!Boolean.TRUE.equals(payer.getActive())) {
+            throw new IllegalArgumentException("payer partner must be active");
+        }
+
         List<PurchaseItemData> items = request.getItems()
                 .stream()
                 .map(this::toItemData)
                 .toList();
 
-        List<PurchaseSplitData> splits = request.getSplits()
-                .stream()
-                .map(this::toSplitData)
-                .toList();
+        BigDecimal totalAmount = calculateTotalAmount(items);
+
+        List<PurchaseSplitData> splits = resolveSplits(request, totalAmount);
 
         Purchase purchase = Purchase.create(
                 request.getPurchaseDate(),
@@ -90,6 +97,44 @@ public class PurchaseService {
         return purchaseMapper.toResponse(purchase);
     }
 
+    private List<PurchaseSplitData> resolveSplits(
+            PurchaseCreateRequest request,
+            BigDecimal totalAmount
+    ) {
+        if (totalAmount.compareTo(BigDecimal.ZERO) == 0) {
+            return List.of();
+        }
+
+        if (request.getSplits() == null || request.getSplits().isEmpty()) {
+            List<Partner> activePartners = partnerRepository.findByActiveTrue();
+
+            return PurchaseSplitCalculator.calculateFromDefaultPercentages(
+                    totalAmount,
+                    activePartners
+            );
+        }
+
+        List<PartnerPercentageData> customPercentages = request.getSplits()
+                .stream()
+                .map(this::toPartnerPercentageData)
+                .toList();
+
+        return PurchaseSplitCalculator.calculateFromCustomPercentages(
+                totalAmount,
+                customPercentages
+        );
+    }
+
+    private PartnerPercentageData toPartnerPercentageData(PurchaseSplitRequest request) {
+        Partner partner = partnerRepository.findById(request.getPartnerId())
+                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
+
+        return new PartnerPercentageData(
+                partner,
+                request.getPercentage()
+        );
+    }
+
     private PurchaseItemData toItemData(PurchaseItemRequest request) {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
@@ -102,13 +147,11 @@ public class PurchaseService {
         );
     }
 
-    private PurchaseSplitData toSplitData(PurchaseSplitRequest request) {
-        Partner partner = partnerRepository.findById(request.getPartnerId())
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
-
-        return new PurchaseSplitData(
-                partner,
-                request.getAmount()
+    private BigDecimal calculateTotalAmount(List<PurchaseItemData> items) {
+        return MoneyUtils.normalize(
+                items.stream()
+                        .map(PurchaseItemData::totalValue)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
         );
     }
 
@@ -127,10 +170,6 @@ public class PurchaseService {
 
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new IllegalArgumentException("items are required");
-        }
-
-        if (request.getSplits() == null || request.getSplits().isEmpty()) {
-            throw new IllegalArgumentException("splits are required");
         }
     }
 

@@ -58,7 +58,7 @@ public class SalesOrderItem {
         if (item == null) throw new IllegalArgumentException("item is required");
         if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("quantity must be greater than zero");
         if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("unitPrice must be greater than zero");
-        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("unitCost must be greater than zero");
+        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("unitCost cannot be negative");
 
         return new SalesOrderItem(salesOrder, item, quantity, unitPrice, unitCost);
     }

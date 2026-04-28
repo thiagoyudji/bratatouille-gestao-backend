@@ -95,7 +95,7 @@ public class SalesOrderService {
 
         BigDecimal unitCost = findUnitCost(item);
 
-        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) <= 0) {
+        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Cost history not found for item: " + item.getName());
         }
 

@@ -9,7 +9,6 @@ import br.com.bratatouille.management.partner.repository.PartnerRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,8 +19,10 @@ public class PartnerService {
     private final PartnerRepository partnerRepository;
     private final PartnerMapper partnerMapper;
 
-    public PartnerService(PartnerRepository partnerRepository,
-                          PartnerMapper partnerMapper) {
+    public PartnerService(
+            PartnerRepository partnerRepository,
+            PartnerMapper partnerMapper
+    ) {
         this.partnerRepository = partnerRepository;
         this.partnerMapper = partnerMapper;
     }
@@ -37,6 +38,7 @@ public class PartnerService {
         Partner partner = new Partner(
                 request.getName(),
                 true,
+                request.getDefaultSplitPercentage(),
                 LocalDateTime.now(),
                 roles
         );
@@ -55,7 +57,7 @@ public class PartnerService {
 
     public PartnerResponse findById(Long id) {
         Partner partner = partnerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Partner not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
 
         return partnerMapper.toResponse(partner);
     }
