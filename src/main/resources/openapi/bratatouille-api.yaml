@@ -29,6 +29,9 @@ paths:
   /api/financial-closings/{id}:
     $ref: './paths/financial-closing.yaml#/getClosed'
 
+  /api/financial/cash-flow/period:
+    $ref: './paths/financial.yaml#/cashFlowByPeriod'
+
   /api/partners:
     $ref: './paths/partners.yaml#/partners'
   /api/partners/{id}:
@@ -103,6 +106,10 @@ paths:
   /api/operational-costs/{id}:
     $ref: './paths/operational-costs.yaml#/operationalCostById'
 
+  /api/zero-cost-entries:
+    $ref: './paths/zero-cost-entries.yaml#/zeroCostEntries'
+  /api/zero-cost-entries/{id}:
+    $ref: './paths/zero-cost-entries.yaml#/zeroCostEntryById'
 components:
   schemas:
     StockResponse:
@@ -123,6 +130,11 @@ components:
 
     FinancialClosingResponse:
       $ref: './schemas/financial-closing.yaml#/FinancialClosingResponse'
+
+    CashFlowEntryResponse:
+      $ref: './schemas/financial.yaml#/CashFlowEntryResponse'
+    CashFlowSummaryResponse:
+      $ref: './schemas/financial.yaml#/CashFlowSummaryResponse'
 
     CreatePartnerRequest:
       $ref: './schemas/partner.yaml#/CreatePartnerRequest'
@@ -211,3 +223,8 @@ components:
       $ref: './schemas/operational-cost.yaml#/OperationalCostResponse'
     OperationalCostSplitResponse:
       $ref: './schemas/operational-cost.yaml#/OperationalCostSplitResponse'
+
+    ZeroCostEntryCreateRequest:
+      $ref: './schemas/zero-cost-entry.yaml#/ZeroCostEntryCreateRequest'
+    ZeroCostEntryResponse:
+      $ref: './schemas/zero-cost-entry.yaml#/ZeroCostEntryResponse'

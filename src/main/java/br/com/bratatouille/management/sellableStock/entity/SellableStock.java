@@ -84,10 +84,6 @@ public class SellableStock {
             return;
         }
 
-        if (this.availableQuantity.compareTo(quantity) < 0) {
-            throw new IllegalArgumentException("Insufficient sellable stock");
-        }
-
         this.availableQuantity = this.availableQuantity.subtract(quantity);
     }
 

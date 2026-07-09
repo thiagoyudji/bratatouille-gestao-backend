@@ -1,5 +1,6 @@
 package br.com.bratatouille.management.item.mapper;
 
+import br.com.bratatouille.management.generated.model.CreateItemRequest;
 import br.com.bratatouille.management.generated.model.ItemResponse;
 import br.com.bratatouille.management.item.entity.Item;
 import org.springframework.stereotype.Component;
@@ -25,4 +26,5 @@ public class ItemMapper {
 
         return response;
     }
+
 }

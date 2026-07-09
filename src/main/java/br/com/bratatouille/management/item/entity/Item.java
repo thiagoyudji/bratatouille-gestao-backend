@@ -47,6 +47,18 @@ public class Item {
             BigDecimal lowStockThreshold,
             BigDecimal criticalStockThreshold
     ) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name is required");
+        }
+
+        if (type == null) {
+            throw new IllegalArgumentException("type is required");
+        }
+
+        if (baseUnit == null) {
+            throw new IllegalArgumentException("baseUnit is required");
+        }
+
         validateThresholds(lowStockThreshold, criticalStockThreshold);
 
         this.name = name;
@@ -72,6 +84,33 @@ public class Item {
                         && criticalStockThreshold.compareTo(lowStockThreshold) > 0
         ) {
             throw new IllegalArgumentException("criticalStockThreshold cannot be greater than lowStockThreshold");
+        }
+    }
+
+    public void update(
+            String name,
+            ItemType type,
+            BigDecimal lowStockThreshold,
+            BigDecimal criticalStockThreshold,
+            Boolean active
+    ) {
+        validateThresholds(lowStockThreshold, criticalStockThreshold);
+
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name is required");
+        }
+
+        if (type == null) {
+            throw new IllegalArgumentException("type is required");
+        }
+
+        this.name = name;
+        this.type = type;
+        this.lowStockThreshold = lowStockThreshold;
+        this.criticalStockThreshold = criticalStockThreshold;
+
+        if (active != null) {
+            this.active = active;
         }
     }
 

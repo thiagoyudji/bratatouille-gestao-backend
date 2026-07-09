@@ -57,6 +57,7 @@ StockMovementResponse:
         - MANUAL_ADJUSTMENT
         - SALE_OUTPUT
         - LOSS_OUTPUT
+        - ZERO_COST_ENTRY
     createdAt:
       type: string
       format: date-time

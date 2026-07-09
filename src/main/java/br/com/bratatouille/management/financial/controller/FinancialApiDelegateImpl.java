@@ -5,6 +5,7 @@ import br.com.bratatouille.management.generated.model.PixSettlementResponse;
 import br.com.bratatouille.management.generated.model.FinancialSummaryResponse;
 import br.com.bratatouille.management.financial.service.FinancialService;
 import br.com.bratatouille.management.generated.api.FinancialApiDelegate;
+import br.com.bratatouille.management.generated.model.CashFlowSummaryResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -43,5 +44,10 @@ public class FinancialApiDelegateImpl implements FinancialApiDelegate {
     @Override
     public ResponseEntity<FinancialSummaryResponse> getFinancialSummaryByPeriod(LocalDate startDate, LocalDate endDate) {
         return ResponseEntity.ok(financialService.getFinancialSummaryByPeriod(startDate, endDate));
+    }
+
+    @Override
+    public ResponseEntity<CashFlowSummaryResponse> getCashFlowByPeriod(LocalDate startDate, LocalDate endDate) {
+        return ResponseEntity.ok(financialService.getCashFlowByPeriod(startDate, endDate));
     }
 }

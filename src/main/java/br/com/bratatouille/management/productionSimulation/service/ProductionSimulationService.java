@@ -2,7 +2,7 @@ package br.com.bratatouille.management.productionSimulation.service;
 
 import br.com.bratatouille.management.generated.model.ProductionSimulationItemResponse;
 import br.com.bratatouille.management.generated.model.ProductionSimulationResponse;
-import br.com.bratatouille.management.purchase.repository.PurchaseItemRepository;
+import br.com.bratatouille.management.cost.service.CostService;
 import br.com.bratatouille.management.recipe.entity.Recipe;
 import br.com.bratatouille.management.recipe.entity.RecipeItem;
 import br.com.bratatouille.management.recipe.repository.RecipeRepository;
@@ -19,16 +19,16 @@ public class ProductionSimulationService {
 
     private final RecipeRepository recipeRepository;
     private final StockRepository stockRepository;
-    private final PurchaseItemRepository purchaseItemRepository;
+    private final CostService costService;
 
     public ProductionSimulationService(
             RecipeRepository recipeRepository,
             StockRepository stockRepository,
-            PurchaseItemRepository purchaseItemRepository
+            CostService costService
     ) {
         this.recipeRepository = recipeRepository;
         this.stockRepository = stockRepository;
-        this.purchaseItemRepository = purchaseItemRepository;
+        this.costService = costService;
     }
 
     public ProductionSimulationResponse simulate(Long recipeId, BigDecimal quantity) {
@@ -80,12 +80,7 @@ public class ProductionSimulationService {
 
         BigDecimal missing = requiredQuantity.subtract(currentStock).max(BigDecimal.ZERO);
 
-        BigDecimal unitCost = purchaseItemRepository
-                .findAverageUnitCostByItemId(recipeItem.getItem().getId());
-
-        if (unitCost == null) {
-            unitCost = BigDecimal.ZERO;
-        }
+        BigDecimal unitCost = costService.findUnitCostOrZero(recipeItem.getItem());
 
         BigDecimal totalCost = unitCost.multiply(requiredQuantity);
 

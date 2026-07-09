@@ -9,8 +9,7 @@ import br.com.bratatouille.management.operationalLoss.entity.OperationalLoss;
 import br.com.bratatouille.management.operationalLoss.entity.OperationalLossReason;
 import br.com.bratatouille.management.operationalLoss.mapper.OperationalLossMapper;
 import br.com.bratatouille.management.operationalLoss.repository.OperationalLossRepository;
-import br.com.bratatouille.management.production.repository.ProductionRepository;
-import br.com.bratatouille.management.purchase.repository.PurchaseItemRepository;
+import br.com.bratatouille.management.cost.service.CostService;
 import br.com.bratatouille.management.sellableStock.service.SellableStockService;
 import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.stereotype.Service;
@@ -25,8 +24,7 @@ public class OperationalLossService {
     private final OperationalLossRepository operationalLossRepository;
     private final OperationalLossMapper operationalLossMapper;
     private final ItemRepository itemRepository;
-    private final PurchaseItemRepository purchaseItemRepository;
-    private final ProductionRepository productionRepository;
+    private final CostService costService;
     private final StockService stockService;
     private final SellableStockService sellableStockService;
 
@@ -34,16 +32,14 @@ public class OperationalLossService {
             OperationalLossRepository operationalLossRepository,
             OperationalLossMapper operationalLossMapper,
             ItemRepository itemRepository,
-            PurchaseItemRepository purchaseItemRepository,
-            ProductionRepository productionRepository,
+            CostService costService,
             StockService stockService,
             SellableStockService sellableStockService
     ) {
         this.operationalLossRepository = operationalLossRepository;
         this.operationalLossMapper = operationalLossMapper;
         this.itemRepository = itemRepository;
-        this.purchaseItemRepository = purchaseItemRepository;
-        this.productionRepository = productionRepository;
+        this.costService = costService;
         this.stockService = stockService;
         this.sellableStockService = sellableStockService;
     }
@@ -55,11 +51,7 @@ public class OperationalLossService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
-        BigDecimal unitCost = findUnitCost(item);
-
-        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Cost history not found for item: " + item.getName());
-        }
+        BigDecimal unitCost = costService.findRequiredUnitCost(item);
 
         OperationalLoss loss = OperationalLoss.create(
                 request.getLossDate(),
@@ -93,14 +85,6 @@ public class OperationalLossService {
                 .orElseThrow(() -> new IllegalArgumentException("Operational loss not found"));
 
         return operationalLossMapper.toResponse(loss);
-    }
-
-    private BigDecimal findUnitCost(Item item) {
-        if (item.getType() == ItemType.FINISHED_PRODUCT) {
-            return productionRepository.findAverageUnitCostByOutputItemId(item.getId());
-        }
-
-        return purchaseItemRepository.findAverageUnitCostByItemId(item.getId());
     }
 
     private void validate(OperationalLossCreateRequest request) {

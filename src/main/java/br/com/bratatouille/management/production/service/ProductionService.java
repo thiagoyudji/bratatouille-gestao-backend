@@ -6,7 +6,7 @@ import br.com.bratatouille.management.production.domain.ProductionItemData;
 import br.com.bratatouille.management.production.entity.Production;
 import br.com.bratatouille.management.production.mapper.ProductionMapper;
 import br.com.bratatouille.management.production.repository.ProductionRepository;
-import br.com.bratatouille.management.purchase.repository.PurchaseItemRepository;
+import br.com.bratatouille.management.cost.service.CostService;
 import br.com.bratatouille.management.recipe.entity.Recipe;
 import br.com.bratatouille.management.recipe.entity.RecipeItem;
 import br.com.bratatouille.management.recipe.repository.RecipeRepository;
@@ -14,6 +14,8 @@ import br.com.bratatouille.management.stock.entity.Stock;
 import br.com.bratatouille.management.stock.repository.StockRepository;
 import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.stereotype.Service;
+import br.com.bratatouille.management.lot.entity.Lot;
+import br.com.bratatouille.management.lot.repository.LotRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -27,24 +29,27 @@ public class ProductionService {
     private final ProductionRepository productionRepository;
     private final RecipeRepository recipeRepository;
     private final ProductionMapper productionMapper;
-    private final PurchaseItemRepository purchaseItemRepository;
+    private final CostService costService;
     private final StockRepository stockRepository;
     private final StockService stockService;
+    private final LotRepository lotRepository;
 
     public ProductionService(
             ProductionRepository productionRepository,
             RecipeRepository recipeRepository,
             ProductionMapper productionMapper,
-            PurchaseItemRepository purchaseItemRepository,
+            CostService costService,
             StockRepository stockRepository,
+            LotRepository lotRepository,
             StockService stockService
     ) {
         this.productionRepository = productionRepository;
         this.recipeRepository = recipeRepository;
         this.productionMapper = productionMapper;
-        this.purchaseItemRepository = purchaseItemRepository;
+        this.costService = costService;
         this.stockRepository = stockRepository;
         this.stockService = stockService;
+        this.lotRepository = lotRepository;
     }
 
     @Transactional
@@ -91,6 +96,15 @@ public class ProductionService {
                 saved.getId()
         );
 
+        Lot lot = Lot.create(
+                saved,
+                recipe.getOutputItem(),
+                saved.getProductionDate(),
+                producedQuantity
+        );
+
+        lotRepository.save(lot);
+
         return productionMapper.toResponse(saved);
     }
 
@@ -119,13 +133,7 @@ public class ProductionService {
 
         validateStock(recipeItem, consumedQuantity);
 
-        BigDecimal unitCost = purchaseItemRepository.findAverageUnitCostByItemId(
-                recipeItem.getItem().getId()
-        );
-
-        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Cost history not found for item: " + recipeItem.getItem().getName());
-        }
+        BigDecimal unitCost = costService.findUnitCostOrZero(recipeItem.getItem());
 
         BigDecimal lossQuantity = consumedQuantity.subtract(usableQuantity);
         BigDecimal totalCost = unitCost.multiply(consumedQuantity);

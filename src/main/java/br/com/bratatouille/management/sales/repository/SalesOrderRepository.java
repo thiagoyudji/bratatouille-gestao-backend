@@ -58,4 +58,15 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    @Query("""
+    SELECT COUNT(i)
+    FROM SalesOrderItem i
+    WHERE i.salesOrder.saleDate BETWEEN :startDate AND :endDate
+    AND i.costIncomplete = true
+""")
+    Long countCostIncompleteItemsBetween(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }

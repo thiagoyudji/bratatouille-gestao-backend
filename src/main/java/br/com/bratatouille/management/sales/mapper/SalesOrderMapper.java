@@ -41,6 +41,7 @@ public class SalesOrderMapper {
         response.setItemName(item.getItem().getName());
         response.setQuantity(item.getQuantity());
         response.setUnitPrice(item.getUnitPrice());
+        response.setCostIncomplete(item.getCostIncomplete());
         response.setTotalPrice(item.getTotalPrice());
         response.setUnitCost(item.getUnitCost());
         response.setTotalCost(item.getTotalCost());

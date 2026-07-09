@@ -42,6 +42,8 @@ SalesOrderItemResponse:
       format: int64
     itemName:
       type: string
+    costIncomplete:
+      type: boolean
     quantity:
       type: number
     unitPrice:

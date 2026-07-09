@@ -27,6 +27,7 @@ public class SalesReportService {
         BigDecimal totalCost = MoneyUtils.normalize(salesOrderRepository.sumTotalCostBetween(startDate, endDate));
         BigDecimal grossProfit = MoneyUtils.normalize(salesOrderRepository.sumGrossProfitBetween(startDate, endDate));
         Long totalOrders = salesOrderRepository.countOrdersBetween(startDate, endDate);
+        Long costIncompleteItems = salesOrderRepository.countCostIncompleteItemsBetween(startDate, endDate);
 
         BigDecimal averageTicket = totalOrders == 0
                 ? BigDecimal.ZERO
@@ -46,6 +47,8 @@ public class SalesReportService {
         response.setGrossProfit(grossProfit);
         response.setAverageTicket(averageTicket);
         response.setGrossMarginPercentage(grossMarginPercentage);
+        response.setCostIncompleteItems(costIncompleteItems);
+        response.setHasCostIncomplete(costIncompleteItems > 0);
 
         return response;
     }

@@ -98,6 +98,15 @@ public class DashboardService {
         response.setGrossProfit(salesSummary.getGrossProfit());
         response.setGrossMarginPercentage(salesSummary.getGrossMarginPercentage());
 
+        response.setHasCostIncomplete(salesSummary.getHasCostIncomplete());
+        response.setCostIncompleteItems(salesSummary.getCostIncompleteItems());
+        response.setMarginReliable(!Boolean.TRUE.equals(salesSummary.getHasCostIncomplete()));
+        response.setMarginWarning(
+                Boolean.TRUE.equals(salesSummary.getHasCostIncomplete())
+                        ? "Margin may be unreliable because some sales have incomplete cost."
+                        : null
+        );
+
         response.setTotalOperationalCost(totalOperationalCost);
         response.setFixedOperationalCost(fixedOperationalCost);
         response.setVariableOperationalCost(variableOperationalCost);

@@ -10,6 +10,7 @@ import br.com.bratatouille.management.stock.domain.StockAlertStatus;
 import br.com.bratatouille.management.stock.entity.Stock;
 import br.com.bratatouille.management.stock.mapper.StockMapper;
 import br.com.bratatouille.management.stock.repository.StockMovementRepository;
+import br.com.bratatouille.management.stock.entity.StockMovementType;
 import br.com.bratatouille.management.stock.repository.StockRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -198,5 +199,16 @@ public class StockService {
         }
 
         return null;
+    }
+
+    @Transactional
+    public void addZeroCostEntry(Item item, BigDecimal quantity, Long zeroCostEntryId) {
+        Stock stock = getOrCreateWithLock(item);
+
+        stock.add(quantity);
+
+        stockRepository.save(stock);
+
+        stockMovementService.registerZeroCostEntry(item, quantity, zeroCostEntryId);
     }
 }

@@ -1,0 +1,45 @@
+ZeroCostEntryCreateRequest:
+  type: object
+  required:
+    - itemId
+    - quantity
+    - reason
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    quantity:
+      type: number
+    reason:
+      type: string
+      enum:
+        - DONATION
+        - INITIAL_STOCK
+        - MANUAL_ADJUSTMENT
+    note:
+      type: string
+
+ZeroCostEntryResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    quantity:
+      type: number
+    reason:
+      type: string
+      enum:
+        - DONATION
+        - INITIAL_STOCK
+        - MANUAL_ADJUSTMENT
+    note:
+      type: string
+    createdAt:
+      type: string
+      format: date-time

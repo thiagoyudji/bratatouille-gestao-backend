@@ -16,4 +16,18 @@ public interface PurchaseItemRepository extends JpaRepository<PurchaseItem, Long
         WHERE pi.item.id = :itemId
     """)
     BigDecimal findAverageUnitCostByItemId(Long itemId);
+
+    @Query("""
+    SELECT COALESCE(SUM(pi.totalValue), 0)
+    FROM PurchaseItem pi
+    WHERE pi.item.id = :itemId
+""")
+    BigDecimal sumTotalValueByItemId(Long itemId);
+
+    @Query("""
+    SELECT COALESCE(SUM(pi.quantity), 0)
+    FROM PurchaseItem pi
+    WHERE pi.item.id = :itemId
+""")
+    BigDecimal sumQuantityByItemId(Long itemId);
 }

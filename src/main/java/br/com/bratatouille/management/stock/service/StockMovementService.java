@@ -45,4 +45,8 @@ public class StockMovementService {
         StockMovement movement = new StockMovement(item, quantity, type, sourceId);
         stockMovementRepository.save(movement);
     }
+
+    public void registerZeroCostEntry(Item item, BigDecimal quantity, Long zeroCostEntryId) {
+        registerMovement(item, quantity, StockMovementType.ZERO_COST_ENTRY, zeroCostEntryId);
+    }
 }

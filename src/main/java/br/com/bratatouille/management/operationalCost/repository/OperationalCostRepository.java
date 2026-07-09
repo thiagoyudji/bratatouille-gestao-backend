@@ -35,4 +35,11 @@ public interface OperationalCostRepository extends JpaRepository<OperationalCost
     );
 
     List<OperationalCost> findByCostDateBetween(LocalDate startDate, LocalDate endDate);
+
+    @Query("""
+    SELECT COALESCE(SUM(o.amount), 0)
+    FROM OperationalCost o
+    WHERE o.costDate < :date
+""")
+    BigDecimal sumAmountBefore(LocalDate date);
 }

@@ -4,16 +4,13 @@ import br.com.bratatouille.management.generated.model.SalesOrderCreateRequest;
 import br.com.bratatouille.management.generated.model.SalesOrderItemRequest;
 import br.com.bratatouille.management.generated.model.SalesOrderResponse;
 import br.com.bratatouille.management.item.entity.Item;
-import br.com.bratatouille.management.item.entity.ItemType;
 import br.com.bratatouille.management.item.repository.ItemRepository;
-import br.com.bratatouille.management.production.repository.ProductionRepository;
-import br.com.bratatouille.management.purchase.repository.PurchaseItemRepository;
 import br.com.bratatouille.management.sales.domain.SalesOrderItemData;
+import br.com.bratatouille.management.cost.service.CostService;
 import br.com.bratatouille.management.sales.entity.SalesOrder;
 import br.com.bratatouille.management.sales.mapper.SalesOrderMapper;
 import br.com.bratatouille.management.sales.repository.SalesOrderRepository;
 import br.com.bratatouille.management.sellableStock.service.SellableStockService;
-import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,27 +23,21 @@ public class SalesOrderService {
     private final SalesOrderRepository salesOrderRepository;
     private final SalesOrderMapper salesOrderMapper;
     private final ItemRepository itemRepository;
-    private final PurchaseItemRepository purchaseItemRepository;
-    private final ProductionRepository productionRepository;
     private final SellableStockService sellableStockService;
-    private final StockService stockService;
+    private final CostService costService;
 
     public SalesOrderService(
             SalesOrderRepository salesOrderRepository,
             SalesOrderMapper salesOrderMapper,
+            CostService costService,
             ItemRepository itemRepository,
-            PurchaseItemRepository purchaseItemRepository,
-            ProductionRepository productionRepository,
-            SellableStockService sellableStockService,
-            StockService stockService
+            SellableStockService sellableStockService
     ) {
         this.salesOrderRepository = salesOrderRepository;
         this.salesOrderMapper = salesOrderMapper;
+        this.costService = costService;
         this.itemRepository = itemRepository;
-        this.purchaseItemRepository = purchaseItemRepository;
-        this.productionRepository = productionRepository;
         this.sellableStockService = sellableStockService;
-        this.stockService = stockService;
     }
 
     @Transactional
@@ -67,10 +58,9 @@ public class SalesOrderService {
 
         SalesOrder saved = salesOrderRepository.save(salesOrder);
 
-        itemsData.forEach(itemData -> {
-            sellableStockService.decreaseAfterSale(itemData.item(), itemData.quantity());
-            stockService.removeForSale(itemData.item(), itemData.quantity(), saved.getId());
-        });
+        itemsData.forEach(itemData ->
+                sellableStockService.decreaseAfterSale(itemData.item(), itemData.quantity())
+        );
 
         return salesOrderMapper.toResponse(saved);
     }
@@ -93,27 +83,18 @@ public class SalesOrderService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
-        BigDecimal unitCost = findUnitCost(item);
-
-        if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Cost history not found for item: " + item.getName());
-        }
+        BigDecimal unitCost = costService.findUnitCostOrZero(item);
+        boolean costIncomplete = costService.isCostIncomplete(unitCost);
 
         return new SalesOrderItemData(
                 item,
                 request.getQuantity(),
                 request.getUnitPrice(),
-                unitCost
+                unitCost,
+                costIncomplete
         );
     }
 
-    private BigDecimal findUnitCost(Item item) {
-        if (item.getType() == ItemType.FINISHED_PRODUCT) {
-            return productionRepository.findAverageUnitCostByOutputItemId(item.getId());
-        }
-
-        return purchaseItemRepository.findAverageUnitCostByItemId(item.getId());
-    }
 
     private void validate(SalesOrderCreateRequest request) {
         if (request.getSaleDate() == null) {

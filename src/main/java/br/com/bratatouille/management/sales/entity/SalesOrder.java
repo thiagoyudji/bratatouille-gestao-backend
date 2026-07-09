@@ -68,7 +68,8 @@ public class SalesOrder {
                         itemData.item(),
                         itemData.quantity(),
                         itemData.unitPrice(),
-                        itemData.unitCost()
+                        itemData.unitCost(),
+                        itemData.costIncomplete()
                 )
         ));
 

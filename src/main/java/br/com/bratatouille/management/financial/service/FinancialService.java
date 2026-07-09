@@ -9,7 +9,10 @@ import br.com.bratatouille.management.financial.mapper.FinancialMapper;
 import br.com.bratatouille.management.generated.model.PartnerBalanceResponse;
 import br.com.bratatouille.management.generated.model.PixSettlementResponse;
 import br.com.bratatouille.management.financial.domain.PartnerFinancialSummaryAccumulator;
-import br.com.bratatouille.management.generated.model.FinancialPartnerSummaryResponse;
+import br.com.bratatouille.management.generated.model.CashFlowEntryResponse;
+import br.com.bratatouille.management.generated.model.CashFlowSummaryResponse;
+import java.util.ArrayList;
+import java.util.Comparator;
 import br.com.bratatouille.management.generated.model.FinancialSummaryResponse;
 import br.com.bratatouille.management.operationalCost.entity.OperationalCost;
 import br.com.bratatouille.management.operationalCost.entity.OperationalCostSplit;
@@ -274,5 +277,92 @@ public class FinancialService {
                 partner.getId(),
                 ignored -> new PartnerFinancialSummaryAccumulator(partner)
         );
+    }
+
+    @Transactional(readOnly = true)
+    public CashFlowSummaryResponse getCashFlowByPeriod(LocalDate startDate, LocalDate endDate) {
+        validatePeriod(startDate, endDate);
+
+        List<CashFlowEntryResponse> entries = new ArrayList<>();
+
+        purchaseRepository.findByPurchaseDateBetween(startDate, endDate)
+                .forEach(purchase -> entries.add(toPurchaseCashFlowEntry(purchase)));
+
+        operationalCostRepository.findByCostDateBetween(startDate, endDate)
+                .forEach(operationalCost -> entries.add(toOperationalCostCashFlowEntry(operationalCost)));
+
+        entries.sort(
+                Comparator.comparing(CashFlowEntryResponse::getDate)
+                        .thenComparing(e -> e.getDirection() == CashFlowEntryResponse.DirectionEnum.OUT ? 0 : 1)
+                        .thenComparing(CashFlowEntryResponse::getSourceId)
+        );
+
+        BigDecimal openingBalance = calculateOpeningBalance(startDate);
+        BigDecimal runningBalance = openingBalance;
+        BigDecimal totalOut = BigDecimal.ZERO;
+        BigDecimal totalIn = BigDecimal.ZERO;
+
+        for (CashFlowEntryResponse entry : entries) {
+            if (entry.getDirection() == CashFlowEntryResponse.DirectionEnum.OUT) {
+                totalOut = MoneyUtils.normalize(totalOut.add(entry.getAmount()));
+                runningBalance = MoneyUtils.normalize(runningBalance.subtract(entry.getAmount()));
+            } else {
+                totalIn = MoneyUtils.normalize(totalIn.add(entry.getAmount()));
+                runningBalance = MoneyUtils.normalize(runningBalance.add(entry.getAmount()));
+            }
+
+            entry.setBalanceAfter(runningBalance);
+        }
+
+        CashFlowSummaryResponse response = new CashFlowSummaryResponse();
+
+        response.setStartDate(startDate);
+        response.setEndDate(endDate);
+        response.setOpeningBalance(openingBalance);
+        response.setTotalIn(totalIn);
+        response.setTotalOut(totalOut);
+        response.setClosingBalance(runningBalance);
+        response.setEntries(entries);
+
+        return response;
+    }
+
+    private BigDecimal calculateOpeningBalance(LocalDate startDate) {
+        BigDecimal purchaseBefore = purchaseRepository.sumTotalAmountBefore(startDate);
+        BigDecimal operationalBefore = operationalCostRepository.sumAmountBefore(startDate);
+
+        BigDecimal totalOut = MoneyUtils.normalize(purchaseBefore.add(operationalBefore));
+
+        return totalOut.negate();
+    }
+
+    private CashFlowEntryResponse toPurchaseCashFlowEntry(Purchase purchase) {
+        CashFlowEntryResponse response = new CashFlowEntryResponse();
+
+        response.setDate(purchase.getPurchaseDate());
+        response.setType(CashFlowEntryResponse.TypeEnum.PURCHASE);
+        response.setSourceId(purchase.getId());
+        response.setDescription("Purchase - " + purchase.getSupplier());
+        response.setPartnerId(purchase.getPaidBy().getId());
+        response.setPartnerName(purchase.getPaidBy().getName());
+        response.setAmount(MoneyUtils.normalize(purchase.getTotalAmount()));
+        response.setDirection(CashFlowEntryResponse.DirectionEnum.OUT);
+
+        return response;
+    }
+
+    private CashFlowEntryResponse toOperationalCostCashFlowEntry(OperationalCost operationalCost) {
+        CashFlowEntryResponse response = new CashFlowEntryResponse();
+
+        response.setDate(operationalCost.getCostDate());
+        response.setType(CashFlowEntryResponse.TypeEnum.OPERATIONAL_COST);
+        response.setSourceId(operationalCost.getId());
+        response.setDescription(operationalCost.getDescription());
+        response.setPartnerId(operationalCost.getPaidBy().getId());
+        response.setPartnerName(operationalCost.getPaidBy().getName());
+        response.setAmount(MoneyUtils.normalize(operationalCost.getAmount()));
+        response.setDirection(CashFlowEntryResponse.DirectionEnum.OUT);
+
+        return response;
     }
 }

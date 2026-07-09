@@ -7,11 +7,9 @@ DashboardOverviewResponse:
     endDate:
       type: string
       format: date
-
     totalOrders:
       type: integer
       format: int64
-
     totalRevenue:
       type: number
     totalCost:
@@ -20,7 +18,6 @@ DashboardOverviewResponse:
       type: number
     grossMarginPercentage:
       type: number
-
     totalOperationalCost:
       type: number
     fixedOperationalCost:
@@ -29,12 +26,10 @@ DashboardOverviewResponse:
       type: number
     financialOperationalCost:
       type: number
-
     netProfit:
       type: number
     netMarginPercentage:
       type: number
-
     criticalStockAlerts:
       type: integer
       format: int64
@@ -44,7 +39,15 @@ DashboardOverviewResponse:
     nearZeroStockAlerts:
       type: integer
       format: int64
-
     openPartnerBalances:
       type: integer
       format: int64
+    hasCostIncomplete:
+      type: boolean
+    costIncompleteItems:
+      type: integer
+      format: int64
+    marginReliable:
+      type: boolean
+    marginWarning:
+      type: string

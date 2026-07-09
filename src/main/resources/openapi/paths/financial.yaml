@@ -114,3 +114,30 @@ summaryByPeriod:
           application/json:
             schema:
               $ref: '../schemas/financial.yaml#/FinancialSummaryResponse'
+
+cashFlowByPeriod:
+  get:
+    tags:
+      - Financial
+    operationId: getCashFlowByPeriod
+    summary: Get cash flow by period
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Cash flow by period found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/financial.yaml#/CashFlowSummaryResponse'

@@ -16,4 +16,18 @@ public interface ProductionRepository extends JpaRepository<Production, Long> {
         WHERE p.recipe.outputItem.id = :itemId
     """)
     BigDecimal findAverageUnitCostByOutputItemId(Long itemId);
+
+    @Query("""
+    SELECT COALESCE(SUM(p.totalCost), 0)
+    FROM Production p
+    WHERE p.recipe.outputItem.id = :itemId
+""")
+    BigDecimal sumTotalCostByOutputItemId(Long itemId);
+
+    @Query("""
+    SELECT COALESCE(SUM(p.producedQuantity), 0)
+    FROM Production p
+    WHERE p.recipe.outputItem.id = :itemId
+""")
+    BigDecimal sumProducedQuantityByOutputItemId(Long itemId);
 }

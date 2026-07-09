@@ -61,8 +61,6 @@ public class SellableStockService {
 
         Stock stock = stockRepository.findByItemId(itemId).orElse(null);
 
-        validateAvailableQuantity(request, stock);
-
         SellableStock sellableStock = sellableStockRepository.findByItemId(itemId)
                 .orElseGet(() -> SellableStock.create(
                         item,
@@ -110,18 +108,6 @@ public class SellableStockService {
     private void validateFinishedProduct(Item item) {
         if (item.getType() != ItemType.FINISHED_PRODUCT) {
             throw new IllegalArgumentException("Only finished products can be sellable");
-        }
-    }
-
-    private void validateAvailableQuantity(SellableStockUpsertRequest request, Stock stock) {
-        if (Boolean.TRUE.equals(request.getInfinite())) {
-            return;
-        }
-
-        BigDecimal currentStock = stock == null ? BigDecimal.ZERO : stock.getQuantity();
-
-        if (request.getAvailableQuantity().compareTo(currentStock) > 0) {
-            throw new IllegalArgumentException("availableQuantity cannot be greater than current stock");
         }
     }
 

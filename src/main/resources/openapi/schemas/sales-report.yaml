@@ -20,6 +20,11 @@ SalesSummaryResponse:
       type: number
     grossMarginPercentage:
       type: number
+    costIncompleteItems:
+      type: integer
+      format: int64
+    hasCostIncomplete:
+      type: boolean
 
 SalesProductPerformanceResponse:
   type: object
