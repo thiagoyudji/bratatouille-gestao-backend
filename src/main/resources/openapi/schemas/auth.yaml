@@ -1,0 +1,84 @@
+BootstrapAdminRequest:
+  type: object
+  required:
+    - username
+    - password
+  properties:
+    username:
+      type: string
+      minLength: 3
+      maxLength: 80
+    password:
+      type: string
+      minLength: 8
+      maxLength: 72
+
+LoginRequest:
+  type: object
+  required:
+    - username
+    - password
+  properties:
+    username:
+      type: string
+      minLength: 1
+    password:
+      type: string
+      minLength: 1
+
+RegisterCustomerRequest:
+  type: object
+  required:
+    - username
+    - password
+  properties:
+    username:
+      type: string
+      minLength: 3
+      maxLength: 80
+    password:
+      type: string
+      minLength: 8
+      maxLength: 72
+
+CreateDashboardUserRequest:
+  type: object
+  required:
+    - username
+    - password
+    - role
+  properties:
+    username:
+      type: string
+      minLength: 3
+      maxLength: 80
+    password:
+      type: string
+      minLength: 8
+      maxLength: 72
+    role:
+      type: string
+      enum:
+        - ADMIN
+        - EMPLOYEE
+        - CUSTOMER
+
+AuthResponse:
+  type: object
+  properties:
+    token:
+      type: string
+    tokenType:
+      type: string
+      example: Bearer
+    username:
+      type: string
+    role:
+      type: string
+      enum:
+        - ADMIN
+        - EMPLOYEE
+        - CUSTOMER
+    expiresAt:
+      type: string
+      format: date-time

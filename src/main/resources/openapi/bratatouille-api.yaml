@@ -4,6 +4,17 @@ info:
   version: 1.0.0
 
 paths:
+  /api/auth/bootstrap/admin:
+    $ref: './paths/auth.yaml#/bootstrapAdmin'
+  /api/auth/dashboard/login:
+    $ref: './paths/auth.yaml#/dashboardLogin'
+  /api/auth/ecommerce/login:
+    $ref: './paths/auth.yaml#/ecommerceLogin'
+  /api/auth/ecommerce/register:
+    $ref: './paths/auth.yaml#/ecommerceRegister'
+  /api/auth/dashboard/users:
+    $ref: './paths/auth.yaml#/dashboardUsers'
+
   /api/stocks:
     $ref: './paths/stocks.yaml#/stocks'
   /api/stocks/{itemId}:
@@ -228,3 +239,21 @@ components:
       $ref: './schemas/zero-cost-entry.yaml#/ZeroCostEntryCreateRequest'
     ZeroCostEntryResponse:
       $ref: './schemas/zero-cost-entry.yaml#/ZeroCostEntryResponse'
+
+    ApiErrorResponse:
+      $ref: './schemas/error.yaml#/ApiErrorResponse'
+    ApiFieldErrorResponse:
+      $ref: './schemas/error.yaml#/ApiFieldErrorResponse'
+    ApiErrorCode:
+      $ref: './schemas/error.yaml#/ApiErrorCode'
+
+    AuthResponse:
+      $ref: './schemas/auth.yaml#/AuthResponse'
+    BootstrapAdminRequest:
+      $ref: './schemas/auth.yaml#/BootstrapAdminRequest'
+    LoginRequest:
+      $ref: './schemas/auth.yaml#/LoginRequest'
+    RegisterCustomerRequest:
+      $ref: './schemas/auth.yaml#/RegisterCustomerRequest'
+    CreateDashboardUserRequest:
+      $ref: './schemas/auth.yaml#/CreateDashboardUserRequest'
