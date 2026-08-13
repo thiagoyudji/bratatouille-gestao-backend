@@ -20,7 +20,7 @@
 
 	<properties>
 		<java.version>21</java.version>
-		<openapi-generator.version>7.14.0</openapi-generator.version>
+		<openapi-generator.version>7.24.0</openapi-generator.version>
 		<springdoc-openapi.version>2.6.0</springdoc-openapi.version>
 	</properties>
 
