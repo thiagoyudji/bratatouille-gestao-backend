@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project name="maven-antrun-" default="main">
-  <target name="main">
-    <mkdir dir="/mnt/c/Users/thiyu/OneDrive/Documentos/dev/bratatouille-gestao-backend/target/generated-sources/openapi/src/main/java" />
-    <mkdir dir="/mnt/c/Users/thiyu/OneDrive/Documentos/dev/bratatouille-gestao-backend/target/generated-sources/openapi/src/test/java" />
-  </target>
-</project>
