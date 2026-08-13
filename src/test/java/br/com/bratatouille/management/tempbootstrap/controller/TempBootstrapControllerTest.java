@@ -51,12 +51,12 @@ class TempBootstrapControllerTest {
     }
 
     @Test
-    void createDashboardUserIsExposedWithoutAuth() throws Exception {
+    void createDashboardUserDelegatesRequest() throws Exception {
         when(authService.createDashboardUser(any(CreateDashboardUserRequest.class))).thenReturn(sampleResponse("employee", UserRole.EMPLOYEE));
 
         mockMvc.perform(post("/api/_temp/bootstrap/dashboard/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new CreateDashboardUserRequest("employee", "secret123", UserRole.EMPLOYEE))))
+                        .content(objectMapper.writeValueAsString(new CreateDashboardUserRequest("employee", "secret123", UserRole.EMPLOYEE, null))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("employee"))
                 .andExpect(jsonPath("$.role").value("EMPLOYEE"));

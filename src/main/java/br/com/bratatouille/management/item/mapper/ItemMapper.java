@@ -2,10 +2,9 @@ package br.com.bratatouille.management.item.mapper;
 
 import br.com.bratatouille.management.generated.model.CreateItemRequest;
 import br.com.bratatouille.management.generated.model.ItemResponse;
+import br.com.bratatouille.management.common.mapper.ApiResponseMapperSupport;
 import br.com.bratatouille.management.item.entity.Item;
 import org.springframework.stereotype.Component;
-
-import java.time.ZoneOffset;
 
 @Component
 public class ItemMapper {
@@ -20,9 +19,11 @@ public class ItemMapper {
         response.setActive(item.isActive());
         response.setLowStockThreshold(item.getLowStockThreshold());
         response.setCriticalStockThreshold(item.getCriticalStockThreshold());
+        response.setPricePf(item.getPricePf());
+        response.setPricePj(item.getPricePj());
 
-        response.setCreatedAt(item.getCreatedAt().atOffset(ZoneOffset.UTC));
-        response.setUpdatedAt(item.getUpdatedAt().atOffset(ZoneOffset.UTC));
+        response.setCreatedAt(ApiResponseMapperSupport.toUtc(item.getCreatedAt()));
+        response.setUpdatedAt(ApiResponseMapperSupport.toUtc(item.getUpdatedAt()));
 
         return response;
     }

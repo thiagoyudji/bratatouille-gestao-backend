@@ -5,6 +5,8 @@ import br.com.bratatouille.management.auth.entity.UserRole;
 import br.com.bratatouille.management.auth.repository.AuthUserRepository;
 import br.com.bratatouille.management.auth.security.JwtService;
 import br.com.bratatouille.management.auth.service.AuthService;
+import br.com.bratatouille.management.customer.mapper.CustomerContractMapper;
+import br.com.bratatouille.management.customer.repository.CustomerProfileRepository;
 import br.com.bratatouille.management.support.builder.AuthUserBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthApiDelegateImplTest {
 
     private AuthUserRepository authUserRepository;
+    private CustomerProfileRepository customerProfileRepository;
+    private CustomerContractMapper customerContractMapper;
     private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private JwtService jwtService;
     private MockMvc mockMvc;
@@ -35,11 +39,13 @@ class AuthApiDelegateImplTest {
     @BeforeEach
     void setUp() {
         authUserRepository = mock(AuthUserRepository.class);
+        customerProfileRepository = mock(CustomerProfileRepository.class);
+        customerContractMapper = new CustomerContractMapper();
         passwordEncoder = mock(org.springframework.security.crypto.password.PasswordEncoder.class);
         jwtService = mock(JwtService.class);
 
-        AuthService authService = new AuthService(authUserRepository, passwordEncoder, jwtService);
-        AuthApiDelegateImpl delegate = new AuthApiDelegateImpl(authService);
+        AuthService authService = new AuthService(authUserRepository, customerProfileRepository, passwordEncoder, jwtService);
+        AuthApiDelegateImpl delegate = new AuthApiDelegateImpl(authService, customerContractMapper);
 
         ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         mockMvc = MockMvcBuilders.standaloneSetup(new br.com.bratatouille.management.generated.api.AuthApiController(delegate))

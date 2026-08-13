@@ -3,12 +3,11 @@ package br.com.bratatouille.management.purchase.mapper;
 import br.com.bratatouille.management.generated.model.PurchaseItemResponse;
 import br.com.bratatouille.management.generated.model.PurchaseResponse;
 import br.com.bratatouille.management.generated.model.PurchaseSplitResponse;
+import br.com.bratatouille.management.common.mapper.ApiResponseMapperSupport;
 import br.com.bratatouille.management.purchase.entity.Purchase;
 import br.com.bratatouille.management.purchase.entity.PurchaseItem;
 import br.com.bratatouille.management.purchase.entity.PurchaseSplit;
 import org.springframework.stereotype.Component;
-
-import java.time.ZoneOffset;
 
 @Component
 public class PurchaseMapper {
@@ -22,7 +21,7 @@ public class PurchaseMapper {
         response.setPaidByPartnerName(purchase.getPaidBy().getName());
         response.setTotalAmount(purchase.getTotalAmount());
         response.setNote(purchase.getNote());
-        response.setCreatedAt(purchase.getCreatedAt().atOffset(ZoneOffset.UTC));
+        response.setCreatedAt(ApiResponseMapperSupport.toUtc(purchase.getCreatedAt()));
         response.setSupplier(purchase.getSupplier());
         response.setItems(
                 purchase.getItems()

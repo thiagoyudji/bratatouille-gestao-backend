@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class StockService {
@@ -50,7 +51,7 @@ public class StockService {
 
     public StockResponse findByItemId(Long itemId) {
         Stock stock = stockRepository.findByItemId(itemId)
-                .orElseThrow(() -> new RuntimeException("Stock not found"));
+                .orElseThrow(() -> new NoSuchElementException("Stock not found"));
 
         return stockMapper.toResponse(stock);
     }
@@ -120,7 +121,7 @@ public class StockService {
     @Transactional
     public StockResponse adjustManually(Long itemId, BigDecimal newQuantity) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+                .orElseThrow(() -> new NoSuchElementException("Item not found"));
 
         Stock stock = getOrCreateWithLock(item);
 
@@ -156,11 +157,12 @@ public class StockService {
     }
 
     private Stock getOrCreateWithLock(Item item) {
-        return stockRepository.findByItemIdForUpdate(item.getId())
-                .orElseGet(() -> {
-                    Stock stock = new Stock(item, BigDecimal.ZERO);
-                    return stockRepository.save(stock);
-                });
+        Stock stock = stockRepository.findByItemIdForUpdate(item.getId())
+                .orElseGet(() -> new Stock(item, BigDecimal.ZERO, item.getPricePf(), item.getPricePj()));
+
+        stock.syncPrices(item.getPricePf(), item.getPricePj());
+
+        return stock;
     }
 
     private StockAlertData buildAlert(Stock stock) {

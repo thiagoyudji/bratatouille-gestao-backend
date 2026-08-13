@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class OperationalCostService {
@@ -65,7 +66,7 @@ public class OperationalCostService {
 
     private void validateRequest(OperationalCostCreateRequest request) {
         if (request == null) {
-            throw new IllegalArgumentException("request is required");
+            throw new IllegalArgumentException("request body is required");
         }
 
         if (request.getCostDate() == null) {
@@ -100,7 +101,7 @@ public class OperationalCostService {
     @Transactional(readOnly = true)
     public OperationalCostResponse findById(Long id) {
         OperationalCost operationalCost = operationalCostRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Operational cost not found"));
+                .orElseThrow(() -> new NoSuchElementException("Operational cost not found"));
 
         return operationalCostMapper.toResponse(operationalCost);
     }
@@ -116,7 +117,7 @@ public class OperationalCostService {
 
     private Partner getValidPartner(Long partnerId) {
         Partner partner = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
+                .orElseThrow(() -> new NoSuchElementException("Partner not found"));
 
         if (!Boolean.TRUE.equals(partner.getActive())) {
             throw new IllegalArgumentException("Partner is inactive");

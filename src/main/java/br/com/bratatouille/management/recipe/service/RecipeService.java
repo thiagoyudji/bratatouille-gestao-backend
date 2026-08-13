@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class RecipeService {
@@ -52,6 +53,7 @@ public class RecipeService {
         return recipeMapper.toResponse(saved);
     }
 
+    @Transactional(readOnly = true)
     public List<RecipeResponse> findAll() {
         return recipeRepository.findAll()
                 .stream()
@@ -59,6 +61,7 @@ public class RecipeService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public RecipeResponse findById(Long id) {
         Recipe recipe = findRecipe(id);
 
@@ -104,12 +107,12 @@ public class RecipeService {
 
     private Recipe findRecipe(Long id) {
         return recipeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Recipe not found"));
+                .orElseThrow(() -> new NoSuchElementException("Recipe not found"));
     }
 
     private Item findItem(Long id) {
         return itemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+                .orElseThrow(() -> new NoSuchElementException("Item not found"));
     }
 
     private List<ItemQuantityData> buildItemsData(List<RecipeItemRequest> items) {

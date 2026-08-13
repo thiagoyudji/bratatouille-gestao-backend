@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ZeroCostEntryService {
@@ -39,7 +40,7 @@ public class ZeroCostEntryService {
         validate(request);
 
         Item item = itemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new NoSuchElementException("Item not found"));
 
         ZeroCostEntry entry = ZeroCostEntry.create(
                 item,
@@ -68,7 +69,7 @@ public class ZeroCostEntryService {
 
     public ZeroCostEntryResponse findById(Long id) {
         ZeroCostEntry entry = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Zero cost entry not found"));
+                .orElseThrow(() -> new NoSuchElementException("Zero cost entry not found"));
 
         return mapper.toResponse(entry);
     }

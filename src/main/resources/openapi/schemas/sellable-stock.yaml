@@ -23,6 +23,10 @@ SellableStockResponse:
       type: number
     currentStockQuantity:
       type: number
+    pricePf:
+      type: number
+    pricePj:
+      type: number
     infinite:
       type: boolean
     enabled:

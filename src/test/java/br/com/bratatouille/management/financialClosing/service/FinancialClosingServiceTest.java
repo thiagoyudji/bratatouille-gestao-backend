@@ -15,6 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -116,7 +117,7 @@ class FinancialClosingServiceTest {
 
         FinancialClosingService service = new FinancialClosingService(financialService, repository, objectMapper);
 
-        assertThrows(IllegalArgumentException.class, () -> service.getClosedSummary(10L));
+        assertThrows(NoSuchElementException.class, () -> service.getClosedSummary(10L));
     }
 
 }

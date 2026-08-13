@@ -10,6 +10,7 @@ import br.com.bratatouille.management.item.repository.ItemRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ItemService {
@@ -24,12 +25,18 @@ public class ItemService {
     }
 
     public ItemResponse create(CreateItemRequest request) {
+        if (request.getPricePf() == null || request.getPricePj() == null) {
+            throw new IllegalArgumentException("item prices are required");
+        }
+
         Item item = new Item(
                 request.getName(),
                 ItemType.valueOf(request.getType().name()),
                 UnitType.valueOf(request.getBaseUnit().name()),
                 request.getLowStockThreshold(),
-                request.getCriticalStockThreshold()
+                request.getCriticalStockThreshold(),
+                request.getPricePf(),
+                request.getPricePj()
         );
 
         Item saved = itemRepository.save(item);
@@ -46,7 +53,7 @@ public class ItemService {
 
     public ItemResponse findById(Long id) {
         Item item = itemRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Item not found"));
+            .orElseThrow(() -> new NoSuchElementException("Item not found"));
 
         return itemMapper.toResponse(item);
     }

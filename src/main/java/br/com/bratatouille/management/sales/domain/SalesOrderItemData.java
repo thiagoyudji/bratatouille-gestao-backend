@@ -8,6 +8,8 @@ public record SalesOrderItemData(
         Item item,
         BigDecimal quantity,
         BigDecimal unitPrice,
+        BigDecimal unitPricePf,
+        BigDecimal unitPricePj,
         BigDecimal unitCost,
         Boolean costIncomplete
 ) {

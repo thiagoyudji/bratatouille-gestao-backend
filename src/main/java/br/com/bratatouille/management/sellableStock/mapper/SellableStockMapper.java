@@ -16,6 +16,8 @@ public class SellableStockMapper {
         response.setItemId(sellableStock.getItem().getId());
         response.setItemName(sellableStock.getItem().getName());
         response.setAvailableQuantity(sellableStock.getAvailableQuantity());
+        response.setPricePf(sellableStock.getPricePf() != null ? sellableStock.getPricePf() : sellableStock.getItem().getPricePf());
+        response.setPricePj(sellableStock.getPricePj() != null ? sellableStock.getPricePj() : sellableStock.getItem().getPricePj());
         response.setInfinite(sellableStock.getInfinite());
         response.setEnabled(sellableStock.getEnabled());
         response.setCurrentStockQuantity(stock == null ? BigDecimal.ZERO : stock.getQuantity());

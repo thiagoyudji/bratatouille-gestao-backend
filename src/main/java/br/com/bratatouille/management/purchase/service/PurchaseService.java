@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class PurchaseService {
@@ -52,7 +53,7 @@ public class PurchaseService {
         validate(request);
 
         Partner payer = partnerRepository.findById(request.getPaidByPartnerId())
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
+                .orElseThrow(() -> new NoSuchElementException("Partner not found"));
 
         if (!Boolean.TRUE.equals(payer.getActive())) {
             throw new IllegalArgumentException("payer partner must be active");
@@ -92,7 +93,7 @@ public class PurchaseService {
 
     public PurchaseResponse findById(Long id) {
         Purchase purchase = purchaseRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Purchase not found"));
+                .orElseThrow(() -> new NoSuchElementException("Purchase not found"));
 
         return purchaseMapper.toResponse(purchase);
     }
@@ -127,7 +128,7 @@ public class PurchaseService {
 
     private PartnerPercentageData toPartnerPercentageData(PurchaseSplitRequest request) {
         Partner partner = partnerRepository.findById(request.getPartnerId())
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
+                .orElseThrow(() -> new NoSuchElementException("Partner not found"));
 
         return new PartnerPercentageData(
                 partner,
@@ -137,7 +138,7 @@ public class PurchaseService {
 
     private PurchaseItemData toItemData(PurchaseItemRequest request) {
         Item item = itemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new NoSuchElementException("Item not found"));
 
         return new PurchaseItemData(
                 item,

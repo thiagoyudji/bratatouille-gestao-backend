@@ -1,5 +1,6 @@
 package br.com.bratatouille.management.stock.entity;
 import br.com.bratatouille.management.item.entity.Item;
+import br.com.bratatouille.management.common.util.MoneyUtils;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -22,10 +23,20 @@ public class Stock {
     @Column(nullable = false, precision = 19, scale = 3)
     private BigDecimal quantity;
 
+    @Column(precision = 19, scale = 6)
+    private BigDecimal pricePf;
+
+    @Column(precision = 19, scale = 6)
+    private BigDecimal pricePj;
+
     protected Stock() {
     }
 
     public Stock(Item item, BigDecimal quantity) {
+        this(item, quantity, null, null);
+    }
+
+    public Stock(Item item, BigDecimal quantity, BigDecimal pricePf, BigDecimal pricePj) {
         if (item == null) {
             throw new IllegalArgumentException("item is required");
         }
@@ -36,6 +47,8 @@ public class Stock {
 
         this.item = item;
         this.quantity = quantity;
+        this.pricePf = pricePf;
+        this.pricePj = pricePj;
     }
 
     public void add(BigDecimal quantity) {
@@ -66,6 +79,11 @@ public class Stock {
         this.quantity = quantity;
     }
 
+    public void syncPrices(BigDecimal pricePf, BigDecimal pricePj) {
+        this.pricePf = pricePf == null ? null : MoneyUtils.normalize(pricePf);
+        this.pricePj = pricePj == null ? null : MoneyUtils.normalize(pricePj);
+    }
+
     public Long getId() {
         return id;
     }
@@ -84,6 +102,14 @@ public class Stock {
 
     public BigDecimal getQuantity() {
         return quantity;
+    }
+
+    public BigDecimal getPricePf() {
+        return pricePf;
+    }
+
+    public BigDecimal getPricePj() {
+        return pricePj;
     }
 
 }

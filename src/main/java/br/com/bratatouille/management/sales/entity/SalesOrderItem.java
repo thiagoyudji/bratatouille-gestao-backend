@@ -1,6 +1,7 @@
 package br.com.bratatouille.management.sales.entity;
 
 import br.com.bratatouille.management.item.entity.Item;
+import br.com.bratatouille.management.common.util.MoneyUtils;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -27,6 +28,12 @@ public class SalesOrderItem {
     @Column(nullable = false, precision = 19, scale = 6)
     private BigDecimal unitPrice;
 
+    @Column(precision = 19, scale = 6)
+    private BigDecimal unitPricePf;
+
+    @Column(precision = 19, scale = 6)
+    private BigDecimal unitPricePj;
+
     @Column(nullable = false, precision = 19, scale = 6)
     private BigDecimal totalPrice;
 
@@ -50,18 +57,22 @@ public class SalesOrderItem {
             Item item,
             BigDecimal quantity,
             BigDecimal unitPrice,
+            BigDecimal unitPricePf,
+            BigDecimal unitPricePj,
             BigDecimal unitCost,
             Boolean costIncomplete
     ) {
         this.salesOrder = salesOrder;
         this.item = item;
         this.quantity = quantity;
-        this.unitPrice = unitPrice;
+        this.unitPrice = MoneyUtils.normalize(unitPrice);
+        this.unitPricePf = normalizeMoney(unitPricePf);
+        this.unitPricePj = normalizeMoney(unitPricePj);
         this.unitCost = unitCost;
         this.costIncomplete = costIncomplete;
-        this.totalPrice = unitPrice.multiply(quantity);
-        this.totalCost = unitCost.multiply(quantity);
-        this.grossProfit = totalPrice.subtract(totalCost);
+        this.totalPrice = MoneyUtils.normalize(unitPrice.multiply(quantity));
+        this.totalCost = MoneyUtils.normalize(unitCost.multiply(quantity));
+        this.grossProfit = MoneyUtils.normalize(totalPrice.subtract(totalCost));
     }
 
     public static SalesOrderItem create(
@@ -69,6 +80,8 @@ public class SalesOrderItem {
             Item item,
             BigDecimal quantity,
             BigDecimal unitPrice,
+            BigDecimal unitPricePf,
+            BigDecimal unitPricePj,
             BigDecimal unitCost,
             Boolean costIncomplete
     ) {
@@ -79,7 +92,11 @@ public class SalesOrderItem {
         if (unitCost == null || unitCost.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("unitCost cannot be negative");
         if (costIncomplete == null) throw new IllegalArgumentException("costIncomplete is required");
 
-        return new SalesOrderItem(salesOrder, item, quantity, unitPrice, unitCost, costIncomplete);
+        return new SalesOrderItem(salesOrder, item, quantity, unitPrice, unitPricePf, unitPricePj, unitCost, costIncomplete);
+    }
+
+    private BigDecimal normalizeMoney(BigDecimal value) {
+        return value == null ? null : MoneyUtils.normalize(value);
     }
 
     public Long getId() { return id; }
@@ -89,6 +106,10 @@ public class SalesOrderItem {
     public BigDecimal getQuantity() { return quantity; }
 
     public BigDecimal getUnitPrice() { return unitPrice; }
+
+    public BigDecimal getUnitPricePf() { return unitPricePf; }
+
+    public BigDecimal getUnitPricePj() { return unitPricePj; }
 
     public BigDecimal getTotalPrice() { return totalPrice; }
 

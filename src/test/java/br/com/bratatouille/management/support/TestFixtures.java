@@ -52,7 +52,15 @@ public final class TestFixtures {
     }
 
     public static Item item(Long id, String name, UnitType baseUnit) {
-        Item item = new Item(name, ItemType.INGREDIENT, baseUnit, new BigDecimal("10.000"), new BigDecimal("5.000"));
+        Item item = new Item(
+                name,
+                ItemType.INGREDIENT,
+                baseUnit,
+                new BigDecimal("10.000"),
+                new BigDecimal("5.000"),
+                new BigDecimal("18.50"),
+                new BigDecimal("24.90")
+        );
         ReflectionTestUtils.setField(item, "id", id);
         return item;
     }

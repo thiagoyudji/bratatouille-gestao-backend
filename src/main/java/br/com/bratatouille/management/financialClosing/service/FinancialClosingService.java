@@ -5,10 +5,12 @@ import br.com.bratatouille.management.financialClosing.entity.FinancialClosing;
 import br.com.bratatouille.management.financialClosing.repository.FinancialClosingRepository;
 import br.com.bratatouille.management.generated.model.FinancialSummaryResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.NoSuchElementException;
 
 @Service
 public class FinancialClosingService {
@@ -48,7 +50,7 @@ public class FinancialClosingService {
     @Transactional(readOnly = true)
     public FinancialSummaryResponse getClosedSummary(Long id) {
         FinancialClosing closing = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("closing not found"));
+                .orElseThrow(() -> new NoSuchElementException("Financial closing not found"));
 
         return fromJson(closing.getSummaryJson());
     }
@@ -56,7 +58,7 @@ public class FinancialClosingService {
     private String toJson(FinancialSummaryResponse summary) {
         try {
             return objectMapper.writeValueAsString(summary);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             throw new RuntimeException("serialization error", e);
         }
     }
@@ -64,7 +66,7 @@ public class FinancialClosingService {
     private FinancialSummaryResponse fromJson(String json) {
         try {
             return objectMapper.readValue(json, FinancialSummaryResponse.class);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             throw new RuntimeException("deserialization error", e);
         }
     }

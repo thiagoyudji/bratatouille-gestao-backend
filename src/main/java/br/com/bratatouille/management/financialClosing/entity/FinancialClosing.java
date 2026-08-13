@@ -20,8 +20,7 @@ public class FinancialClosing {
     @Column(nullable = false)
     private LocalDate endDate;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String summaryJson;
 
     @CreationTimestamp

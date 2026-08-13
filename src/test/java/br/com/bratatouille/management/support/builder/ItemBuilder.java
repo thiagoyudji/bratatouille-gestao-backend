@@ -15,6 +15,8 @@ public class ItemBuilder {
     private UnitType baseUnit = UnitType.UN;
     private BigDecimal lowStockThreshold = new BigDecimal("10.000");
     private BigDecimal criticalStockThreshold = new BigDecimal("5.000");
+    private BigDecimal pricePf = new BigDecimal("18.50");
+    private BigDecimal pricePj = new BigDecimal("24.90");
 
     public ItemBuilder withId(Long id) {
         this.id = id;
@@ -46,8 +48,18 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder withPricePf(BigDecimal pricePf) {
+        this.pricePf = pricePf;
+        return this;
+    }
+
+    public ItemBuilder withPricePj(BigDecimal pricePj) {
+        this.pricePj = pricePj;
+        return this;
+    }
+
     public Item build() {
-        Item item = new Item(name, type, baseUnit, lowStockThreshold, criticalStockThreshold);
+        Item item = new Item(name, type, baseUnit, lowStockThreshold, criticalStockThreshold, pricePf, pricePj);
         ReflectionTestUtils.setField(item, "id", id);
         return item;
     }
