@@ -1,6 +1,6 @@
 # Deploy de produção no Google Cloud
 
-O workflow `.github/workflows/deploy-prod.yml` faz deploy manual do backend no Cloud Run.
+O workflow `.github/workflows/deploy-prod.yml` executa os testes e faz deploy automático no Cloud Run após push na `master`.
 
 ## 1. Preparar o projeto GCP
 
@@ -89,25 +89,29 @@ GCP_SERVICE_ACCOUNT
 
 Use exatamente os valores impressos pelos dois `echo` acima.
 
-## 4. Secrets da aplicação
+## 4. Secrets da aplicação no GitHub
 
 Em **Settings → Secrets and variables → Actions → Secrets**, configure:
 
 ```text
-DATABASE_URL=jdbc:postgresql://db.ojdzlsabrycixfpsmpyz.supabase.co:5432/postgres?sslmode=require
+DATABASE_URL=jdbc:postgresql://host:5432/database?sslmode=require
 DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=<senha nova do Supabase>
-AUTH_JWT_SECRET=<valor gerado localmente>
+DATABASE_PASSWORD=<database-password>
+AUTH_JWT_SECRET=<valor-gerado-localmente>
 ```
-
-Gere o JWT secret sem compartilhá-lo:
 
 ```bash
 openssl rand -base64 48
 ```
 
-## 5. Executar
+Não commite os valores reais nem os imprima nos logs do workflow.
 
-No GitHub: **Actions → Deploy production → Run workflow**.
+## 5. Dependências
 
-O workflow é manual de propósito. Cada execução publica uma imagem versionada pelo SHA do commit e atualiza o serviço `bratatouille-backend-prod` na região `southamerica-east1`.
+O repositório possui Dependabot para atualizações do Maven e das GitHub Actions. O workflow `dependency-review.yml` analisa alterações de dependências em PRs e falha quando uma vulnerabilidade de severidade alta ou crítica é introduzida.
+
+## 6. Executar
+
+Após o merge na `master`, o workflow `Deploy production` executa automaticamente.
+
+Cada execução publica uma imagem versionada pelo SHA do commit e atualiza o serviço `bratatouille-backend-prod` na região `southamerica-east1`.
