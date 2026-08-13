@@ -1,1 +1,14 @@
 .tools/
+
+# Build output and local dependency caches
+target/
+.m2/
+.m2-repo/
+
+# IDE metadata
+.idea/
+.vscode/
+*.iml
+
+# Local archives
+*.zip
