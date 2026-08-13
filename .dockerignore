@@ -1,0 +1,11 @@
+.git
+.gitignore
+.m2
+.m2-repo
+.tools
+target
+*.iml
+.idea
+.vscode
+README.md
+docs

@@ -1,0 +1,288 @@
+openapi: 3.0.3
+info:
+  title: Bratatouille Management API
+  version: 1.0.0
+
+paths:
+  /api/auth/bootstrap/admin:
+    $ref: './paths/auth.yaml#/bootstrapAdmin'
+  /api/auth/dashboard/login:
+    $ref: './paths/auth.yaml#/dashboardLogin'
+  /api/auth/ecommerce/login:
+    $ref: './paths/auth.yaml#/ecommerceLogin'
+  /api/auth/ecommerce/register:
+    $ref: './paths/auth.yaml#/ecommerceRegister'
+  /api/auth/dashboard/users:
+    $ref: './paths/auth.yaml#/dashboardUsers'
+
+  /api/customers/me:
+    $ref: './paths/customers.yaml#/myCustomerProfile'
+
+  /api/stocks:
+    $ref: './paths/stocks.yaml#/stocks'
+  /api/stocks/{itemId}:
+    $ref: './paths/stocks.yaml#/stockByItemId'
+  /api/stocks/{itemId}/adjust:
+    $ref: './paths/stocks.yaml#/adjustStock'
+  /api/stocks/movements:
+    $ref: './paths/stocks.yaml#/stockMovements'
+
+  /api/financial/balances:
+    $ref: './paths/financial.yaml#/balances'
+  /api/financial/pix-settlement:
+    $ref: './paths/financial.yaml#/pixSettlement'
+  /api/financial/balances/period:
+    $ref: './paths/financial.yaml#/balancesByPeriod'
+  /api/financial/pix-settlement/period:
+    $ref: './paths/financial.yaml#/pixSettlementByPeriod'
+  /api/financial/summary/period:
+    $ref: './paths/financial.yaml#/summaryByPeriod'
+
+  /api/financial-closings:
+    $ref: './paths/financial-closing.yaml#/closePeriod'
+  /api/financial-closings/{id}:
+    $ref: './paths/financial-closing.yaml#/getClosed'
+
+  /api/financial/cash-flow/period:
+    $ref: './paths/financial.yaml#/cashFlowByPeriod'
+
+  /api/partners:
+    $ref: './paths/partners.yaml#/partners'
+  /api/partners/{id}:
+    $ref: './paths/partners.yaml#/partnerById'
+
+  /api/items:
+    $ref: './paths/items.yaml#/items'
+  /api/items/{id}:
+    $ref: './paths/items.yaml#/itemById'
+
+  /api/purchases:
+    $ref: './paths/purchases.yaml#/purchases'
+  /api/purchases/{id}:
+    $ref: './paths/purchases.yaml#/purchaseById'
+
+  /api/productions:
+    $ref: './paths/productions.yaml#/productions'
+  /api/productions/{id}:
+    $ref: './paths/productions.yaml#/productionById'
+
+  /api/recipes:
+    $ref: './paths/recipes.yaml#/recipes'
+  /api/recipes/{id}:
+    $ref: './paths/recipes.yaml#/recipeById'
+  /api/recipes/{id}/activate:
+    $ref: './paths/recipes.yaml#/activateRecipe'
+  /api/recipes/{id}/deactivate:
+    $ref: './paths/recipes.yaml#/deactivateRecipe'
+
+  /api/sellable-stocks:
+    $ref: './paths/sellable-stocks.yaml#/sellableStocks'
+  /api/sellable-stocks/{itemId}:
+    $ref: './paths/sellable-stocks.yaml#/sellableStockByItemId'
+
+  /api/sales-orders:
+    $ref: './paths/sales-orders.yaml#/salesOrders'
+  /api/sales-orders/{id}:
+    $ref: './paths/sales-orders.yaml#/salesOrderById'
+
+  /api/payments/webhooks/infinitepay:
+    $ref: './paths/payments.yaml#/infinitePayWebhook'
+  /api/payments/infinitepay/checkouts:
+    $ref: './paths/payments.yaml#/createInfinitePayCheckout'
+
+  /api/sales-reports/summary:
+    $ref: './paths/sales-reports.yaml#/salesSummary'
+  /api/sales-reports/products:
+    $ref: './paths/sales-reports.yaml#/salesProductPerformance'
+
+  /api/operational-losses:
+    $ref: './paths/operational-losses.yaml#/operationalLosses'
+  /api/operational-losses/{id}:
+    $ref: './paths/operational-losses.yaml#/operationalLossById'
+
+  /api/production-simulation:
+    $ref: './paths/production-simulation.yaml#/productionSimulation'
+
+  /api/lots:
+    $ref: './paths/lots.yaml#/lots'
+  /api/lots/{id}:
+    $ref: './paths/lots.yaml#/lotById'
+  /api/lots/production/{productionId}:
+    $ref: './paths/lots.yaml#/lotByProductionId'
+  /api/lots/item/{itemId}:
+    $ref: './paths/lots.yaml#/lotsByItemId'
+  /api/lots/expiring:
+    $ref: './paths/lots.yaml#/expiringLots'
+
+  /api/stocks/alerts:
+    $ref: './paths/stocks.yaml#/stockAlerts'
+
+  /api/dashboard/overview:
+    $ref: './paths/dashboard.yaml#/dashboardOverview'
+
+  /api/operational-costs:
+    $ref: './paths/operational-costs.yaml#/operationalCosts'
+  /api/operational-costs/{id}:
+    $ref: './paths/operational-costs.yaml#/operationalCostById'
+
+  /api/zero-cost-entries:
+    $ref: './paths/zero-cost-entries.yaml#/zeroCostEntries'
+  /api/zero-cost-entries/{id}:
+    $ref: './paths/zero-cost-entries.yaml#/zeroCostEntryById'
+components:
+  schemas:
+    StockResponse:
+      $ref: './schemas/stock.yaml#/StockResponse'
+    AdjustStockRequest:
+      $ref: './schemas/stock.yaml#/AdjustStockRequest'
+    StockMovementResponse:
+      $ref: './schemas/stock.yaml#/StockMovementResponse'
+
+    PartnerBalanceResponse:
+      $ref: './schemas/financial.yaml#/PartnerBalanceResponse'
+    PixSettlementResponse:
+      $ref: './schemas/financial.yaml#/PixSettlementResponse'
+    FinancialPartnerSummaryResponse:
+      $ref: './schemas/financial.yaml#/FinancialPartnerSummaryResponse'
+    FinancialSummaryResponse:
+      $ref: './schemas/financial.yaml#/FinancialSummaryResponse'
+
+    FinancialClosingResponse:
+      $ref: './schemas/financial-closing.yaml#/FinancialClosingResponse'
+
+    CashFlowEntryResponse:
+      $ref: './schemas/financial.yaml#/CashFlowEntryResponse'
+    CashFlowSummaryResponse:
+      $ref: './schemas/financial.yaml#/CashFlowSummaryResponse'
+
+    CreatePartnerRequest:
+      $ref: './schemas/partner.yaml#/CreatePartnerRequest'
+    PartnerResponse:
+      $ref: './schemas/partner.yaml#/PartnerResponse'
+
+    CreateItemRequest:
+      $ref: './schemas/item.yaml#/CreateItemRequest'
+    ItemResponse:
+      $ref: './schemas/item.yaml#/ItemResponse'
+    CustomerProfileRequest:
+      $ref: './schemas/customer.yaml#/CustomerProfileRequest'
+    CustomerAddressRequest:
+      $ref: './schemas/customer.yaml#/CustomerAddressRequest'
+    CustomerAddressResponse:
+      $ref: './schemas/customer.yaml#/CustomerAddressResponse'
+    CustomerProfileResponse:
+      $ref: './schemas/customer.yaml#/CustomerProfileResponse'
+
+    PurchaseCreateRequest:
+      $ref: './schemas/purchase.yaml#/PurchaseCreateRequest'
+    PurchaseItemRequest:
+      $ref: './schemas/purchase.yaml#/PurchaseItemRequest'
+    PurchaseSplitRequest:
+      $ref: './schemas/purchase.yaml#/PurchaseSplitRequest'
+    PurchaseResponse:
+      $ref: './schemas/purchase.yaml#/PurchaseResponse'
+    PurchaseItemResponse:
+      $ref: './schemas/purchase.yaml#/PurchaseItemResponse'
+    PurchaseSplitResponse:
+      $ref: './schemas/purchase.yaml#/PurchaseSplitResponse'
+
+    ProductionCreateRequest:
+      $ref: './schemas/production.yaml#/ProductionCreateRequest'
+    ProductionResponse:
+      $ref: './schemas/production.yaml#/ProductionResponse'
+    ProductionItemResponse:
+      $ref: './schemas/production.yaml#/ProductionItemResponse'
+
+    RecipeItemRequest:
+      $ref: './schemas/recipe.yaml#/RecipeItemRequest'
+    RecipeCreateRequest:
+      $ref: './schemas/recipe.yaml#/RecipeCreateRequest'
+    RecipeUpdateRequest:
+      $ref: './schemas/recipe.yaml#/RecipeUpdateRequest'
+    RecipeItemResponse:
+      $ref: './schemas/recipe.yaml#/RecipeItemResponse'
+    RecipeResponse:
+      $ref: './schemas/recipe.yaml#/RecipeResponse'
+
+    SellableStockUpsertRequest:
+      $ref: './schemas/sellable-stock.yaml#/SellableStockUpsertRequest'
+    SellableStockResponse:
+      $ref: './schemas/sellable-stock.yaml#/SellableStockResponse'
+
+    SalesOrderCreateRequest:
+      $ref: './schemas/sales-order.yaml#/SalesOrderCreateRequest'
+    SalesOrderItemRequest:
+      $ref: './schemas/sales-order.yaml#/SalesOrderItemRequest'
+    SalesOrderResponse:
+      $ref: './schemas/sales-order.yaml#/SalesOrderResponse'
+    SalesOrderItemResponse:
+      $ref: './schemas/sales-order.yaml#/SalesOrderItemResponse'
+    SalesOrderCustomerType:
+      $ref: './schemas/sales-order.yaml#/SalesOrderCustomerType'
+    SalesOrderCustomerAddress:
+      $ref: './schemas/sales-order.yaml#/SalesOrderCustomerAddress'
+
+    InfinitePayWebhookRequest:
+      $ref: './schemas/payments.yaml#/InfinitePayWebhookRequest'
+    InfinitePayWebhookResponse:
+      $ref: './schemas/payments.yaml#/InfinitePayWebhookResponse'
+    InfinitePayCheckoutResponse:
+      $ref: './schemas/payments.yaml#/InfinitePayCheckoutResponse'
+
+    SalesSummaryResponse:
+      $ref: './schemas/sales-report.yaml#/SalesSummaryResponse'
+    SalesProductPerformanceResponse:
+      $ref: './schemas/sales-report.yaml#/SalesProductPerformanceResponse'
+
+    OperationalLossCreateRequest:
+      $ref: './schemas/operational-loss.yaml#/OperationalLossCreateRequest'
+    OperationalLossResponse:
+      $ref: './schemas/operational-loss.yaml#/OperationalLossResponse'
+
+    ProductionSimulationItemResponse:
+      $ref: './schemas/production-simulation.yaml#/ProductionSimulationItemResponse'
+    ProductionSimulationResponse:
+      $ref: './schemas/production-simulation.yaml#/ProductionSimulationResponse'
+
+    LotResponse:
+      $ref: './schemas/lot.yaml#/LotResponse'
+
+    StockAlertResponse:
+      $ref: './schemas/stock.yaml#/StockAlertResponse'
+
+    DashboardOverviewResponse:
+      $ref: './schemas/dashboard.yaml#/DashboardOverviewResponse'
+
+    OperationalCostCreateRequest:
+      $ref: './schemas/operational-cost.yaml#/OperationalCostCreateRequest'
+    OperationalCostSplitRequest:
+      $ref: './schemas/operational-cost.yaml#/OperationalCostSplitRequest'
+    OperationalCostResponse:
+      $ref: './schemas/operational-cost.yaml#/OperationalCostResponse'
+    OperationalCostSplitResponse:
+      $ref: './schemas/operational-cost.yaml#/OperationalCostSplitResponse'
+
+    ZeroCostEntryCreateRequest:
+      $ref: './schemas/zero-cost-entry.yaml#/ZeroCostEntryCreateRequest'
+    ZeroCostEntryResponse:
+      $ref: './schemas/zero-cost-entry.yaml#/ZeroCostEntryResponse'
+
+    ApiErrorResponse:
+      $ref: './schemas/error.yaml#/ApiErrorResponse'
+    ApiFieldErrorResponse:
+      $ref: './schemas/error.yaml#/ApiFieldErrorResponse'
+    ApiErrorCode:
+      $ref: './schemas/error.yaml#/ApiErrorCode'
+
+    AuthResponse:
+      $ref: './schemas/auth.yaml#/AuthResponse'
+    BootstrapAdminRequest:
+      $ref: './schemas/auth.yaml#/BootstrapAdminRequest'
+    LoginRequest:
+      $ref: './schemas/auth.yaml#/LoginRequest'
+    RegisterCustomerRequest:
+      $ref: './schemas/auth.yaml#/RegisterCustomerRequest'
+    CreateDashboardUserRequest:
+      $ref: './schemas/auth.yaml#/CreateDashboardUserRequest'
+    CustomerType:
+      $ref: './schemas/customer.yaml#/CustomerType'

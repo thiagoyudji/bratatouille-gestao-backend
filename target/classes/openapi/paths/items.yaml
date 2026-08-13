@@ -1,0 +1,55 @@
+items:
+  get:
+    tags:
+      - Items
+    operationId: findAllItems
+    summary: List all items
+    responses:
+      '200':
+        description: Items found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/item.yaml#/ItemResponse'
+
+  post:
+    tags:
+      - Items
+    operationId: createItem
+    summary: Create item
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/item.yaml#/CreateItemRequest'
+    responses:
+      '200':
+        description: Item created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/item.yaml#/ItemResponse'
+
+itemById:
+  get:
+    tags:
+      - Items
+    operationId: findItemById
+    summary: Find item by id
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Item found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/item.yaml#/ItemResponse'

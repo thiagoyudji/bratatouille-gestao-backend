@@ -1,0 +1,52 @@
+OperationalLossCreateRequest:
+  type: object
+  required:
+    - lossDate
+    - itemId
+    - quantity
+    - reason
+  properties:
+    lossDate:
+      type: string
+      format: date
+    itemId:
+      type: integer
+      format: int64
+    quantity:
+      type: number
+    reason:
+      type: string
+      enum:
+        - DAMAGE
+        - OPERATIONAL
+        - EXPIRED
+    note:
+      type: string
+
+OperationalLossResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+    lossDate:
+      type: string
+      format: date
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    quantity:
+      type: number
+    reason:
+      type: string
+    unitCost:
+      type: number
+    totalCost:
+      type: number
+    note:
+      type: string
+    createdAt:
+      type: string
+      format: date-time

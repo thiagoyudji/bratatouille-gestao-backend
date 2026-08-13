@@ -1,0 +1,55 @@
+operationalLosses:
+  get:
+    tags:
+      - OperationalLosses
+    operationId: findAllOperationalLosses
+    summary: List operational losses
+    responses:
+      '200':
+        description: Operational losses found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/operational-loss.yaml#/OperationalLossResponse'
+
+  post:
+    tags:
+      - OperationalLosses
+    operationId: createOperationalLoss
+    summary: Create operational loss
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/operational-loss.yaml#/OperationalLossCreateRequest'
+    responses:
+      '200':
+        description: Operational loss created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/operational-loss.yaml#/OperationalLossResponse'
+
+operationalLossById:
+  get:
+    tags:
+      - OperationalLosses
+    operationId: findOperationalLossById
+    summary: Find operational loss by id
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Operational loss found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/operational-loss.yaml#/OperationalLossResponse'

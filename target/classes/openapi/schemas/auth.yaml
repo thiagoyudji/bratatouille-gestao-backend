@@ -1,0 +1,127 @@
+BootstrapAdminRequest:
+  type: object
+  required:
+    - username
+    - password
+  properties:
+    username:
+      type: string
+      minLength: 3
+      maxLength: 80
+    password:
+      type: string
+      minLength: 8
+      maxLength: 72
+
+LoginRequest:
+  type: object
+  required:
+    - username
+    - password
+  properties:
+    username:
+      type: string
+      minLength: 1
+    password:
+      type: string
+      minLength: 1
+
+RegisterCustomerRequest:
+  type: object
+  description: Cadastro público do e-commerce. Sempre cria customer PF e exige perfil com pelo menos um endereço.
+  required:
+    - username
+    - password
+    - profile
+  example:
+    username: maria
+    password: secret123
+    profile:
+      customerType: PF
+      fullName: Maria Silva
+      email: maria@example.com
+      phone: '11999999999'
+      addresses:
+        - label: Casa
+          zipCode: '01001000'
+          street: Rua da Consolação
+          number: '123'
+          neighborhood: Centro
+          state: SP
+          city: São Paulo
+          complement: Apto 12
+          defaultAddress: true
+  properties:
+    username:
+      type: string
+      minLength: 3
+      maxLength: 80
+    password:
+      type: string
+      minLength: 8
+      maxLength: 72
+    profile:
+      $ref: './customer.yaml#/CustomerProfileRequest'
+
+CreateDashboardUserRequest:
+  type: object
+  description: Cadastro feito pelo dashboard. ADMIN pode criar CUSTOMER PJ; EMPLOYEE e ADMIN não exigem profile.
+  required:
+    - username
+    - password
+    - role
+  example:
+    username: loja
+    password: secret123
+    role: CUSTOMER
+    profile:
+      customerType: PJ
+      fullName: Bratatouille Ltda
+      email: financeiro@bratatouille.com
+      phone: '1133334444'
+      addresses:
+        - label: Comercial
+          zipCode: '01310930'
+          street: Avenida Paulista
+          number: '1000'
+          neighborhood: Bela Vista
+          state: SP
+          city: São Paulo
+          defaultAddress: true
+  properties:
+    username:
+      type: string
+      minLength: 3
+      maxLength: 80
+    password:
+      type: string
+      minLength: 8
+      maxLength: 72
+    role:
+      type: string
+      enum:
+        - ADMIN
+        - EMPLOYEE
+        - CUSTOMER
+    profile:
+      $ref: './customer.yaml#/CustomerProfileRequest'
+
+AuthResponse:
+  type: object
+  properties:
+    token:
+      type: string
+    tokenType:
+      type: string
+      example: Bearer
+    username:
+      type: string
+    role:
+      type: string
+      enum:
+        - ADMIN
+        - EMPLOYEE
+        - CUSTOMER
+    expiresAt:
+      type: string
+      format: date-time

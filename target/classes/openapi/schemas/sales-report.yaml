@@ -1,0 +1,67 @@
+SalesSummaryResponse:
+  type: object
+  description: Summary of sales for a period, using the actual sold price stored in each order.
+  example:
+    startDate: '2026-08-01'
+    endDate: '2026-08-31'
+    totalOrders: 2
+    totalAmount: 43.4
+    totalCost: 0
+    grossProfit: 43.4
+    averageTicket: 21.7
+    grossMarginPercentage: 100
+    costIncompleteItems: 2
+    hasCostIncomplete: true
+  properties:
+    startDate:
+      type: string
+      format: date
+    endDate:
+      type: string
+      format: date
+    totalOrders:
+      type: integer
+      format: int64
+    totalAmount:
+      type: number
+    totalCost:
+      type: number
+    grossProfit:
+      type: number
+    averageTicket:
+      type: number
+    grossMarginPercentage:
+      type: number
+    costIncompleteItems:
+      type: integer
+      format: int64
+    hasCostIncomplete:
+      type: boolean
+
+SalesProductPerformanceResponse:
+  type: object
+  description: Product performance grouped by item, using the real amount sold for PF/PJ orders.
+  example:
+    itemId: 10
+    itemName: Pizza Margherita
+    soldQuantity: 2
+    totalAmount: 43.4
+    totalCost: 0
+    grossProfit: 43.4
+    grossMarginPercentage: 100
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    soldQuantity:
+      type: number
+    totalAmount:
+      type: number
+    totalCost:
+      type: number
+    grossProfit:
+      type: number
+    grossMarginPercentage:
+      type: number

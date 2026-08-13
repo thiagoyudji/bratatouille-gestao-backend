@@ -1,0 +1,118 @@
+PartnerBalanceResponse:
+  type: object
+  properties:
+    partnerId:
+      type: integer
+      format: int64
+    partnerName:
+      type: string
+    balance:
+      type: number
+
+PixSettlementResponse:
+  type: object
+  properties:
+    fromPartnerId:
+      type: integer
+      format: int64
+    fromPartnerName:
+      type: string
+    toPartnerId:
+      type: integer
+      format: int64
+    toPartnerName:
+      type: string
+    amount:
+      type: number
+
+FinancialPartnerSummaryResponse:
+  type: object
+  properties:
+    partnerId:
+      type: integer
+      format: int64
+    partnerName:
+      type: string
+    totalPaid:
+      type: number
+    totalOwed:
+      type: number
+    balance:
+      type: number
+
+FinancialSummaryResponse:
+  type: object
+  properties:
+    startDate:
+      type: string
+      format: date
+    endDate:
+      type: string
+      format: date
+    totalPurchases:
+      type: number
+    totalOperationalCosts:
+      type: number
+    totalSpent:
+      type: number
+    partners:
+      type: array
+      items:
+        $ref: '#/FinancialPartnerSummaryResponse'
+    pixSettlement:
+      type: array
+      items:
+        $ref: '#/PixSettlementResponse'
+
+CashFlowEntryResponse:
+  type: object
+  properties:
+    date:
+      type: string
+      format: date
+    type:
+      type: string
+      enum:
+        - PURCHASE
+        - OPERATIONAL_COST
+    sourceId:
+      type: integer
+      format: int64
+    description:
+      type: string
+    partnerId:
+      type: integer
+      format: int64
+    partnerName:
+      type: string
+    amount:
+      type: number
+    direction:
+      type: string
+      enum:
+        - OUT
+        - IN
+    balanceAfter:
+      type: number
+
+CashFlowSummaryResponse:
+  type: object
+  properties:
+    startDate:
+      type: string
+      format: date
+    endDate:
+      type: string
+      format: date
+    openingBalance:
+      type: number
+    totalIn:
+      type: number
+    totalOut:
+      type: number
+    closingBalance:
+      type: number
+    entries:
+      type: array
+      items:
+        $ref: '#/CashFlowEntryResponse'

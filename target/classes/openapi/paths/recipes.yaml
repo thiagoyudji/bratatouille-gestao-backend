@@ -1,0 +1,123 @@
+recipes:
+  get:
+    tags:
+      - Recipes
+    operationId: findAllRecipes
+    summary: List all recipes
+    responses:
+      '200':
+        description: Recipes found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/recipe.yaml#/RecipeResponse'
+
+  post:
+    tags:
+      - Recipes
+    operationId: createRecipe
+    summary: Create recipe
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/recipe.yaml#/RecipeCreateRequest'
+    responses:
+      '200':
+        description: Recipe created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/RecipeResponse'
+
+recipeById:
+  get:
+    tags:
+      - Recipes
+    operationId: findRecipeById
+    summary: Find recipe by id
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Recipe found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/RecipeResponse'
+
+  put:
+    tags:
+      - Recipes
+    operationId: updateRecipe
+    summary: Update recipe
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/recipe.yaml#/RecipeUpdateRequest'
+    responses:
+      '200':
+        description: Recipe updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/RecipeResponse'
+
+activateRecipe:
+  patch:
+    tags:
+      - Recipes
+    operationId: activateRecipe
+    summary: Activate recipe
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Recipe activated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/RecipeResponse'
+
+deactivateRecipe:
+  patch:
+    tags:
+      - Recipes
+    operationId: deactivateRecipe
+    summary: Deactivate recipe
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Recipe deactivated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/RecipeResponse'

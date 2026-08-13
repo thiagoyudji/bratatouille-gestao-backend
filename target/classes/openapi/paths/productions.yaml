@@ -1,0 +1,55 @@
+productions:
+  get:
+    tags:
+      - Productions
+    operationId: findAllProductions
+    summary: List all productions
+    responses:
+      '200':
+        description: Productions found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/production.yaml#/ProductionResponse'
+
+  post:
+    tags:
+      - Productions
+    operationId: createProduction
+    summary: Create production
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/production.yaml#/ProductionCreateRequest'
+    responses:
+      '200':
+        description: Production created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/production.yaml#/ProductionResponse'
+
+productionById:
+  get:
+    tags:
+      - Productions
+    operationId: findProductionById
+    summary: Find production by id
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Production found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/production.yaml#/ProductionResponse'

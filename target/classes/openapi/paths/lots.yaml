@@ -1,0 +1,109 @@
+lots:
+  get:
+    tags:
+      - Lots
+    operationId: findAllLots
+    summary: List all lots
+    responses:
+      '200':
+        description: Lots found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/lot.yaml#/LotResponse'
+
+lotById:
+  get:
+    tags:
+      - Lots
+    operationId: findLotById
+    summary: Find lot by id
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Lot found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/lot.yaml#/LotResponse'
+
+lotByProductionId:
+  get:
+    tags:
+      - Lots
+    operationId: findLotByProductionId
+    summary: Find lot by production id
+    parameters:
+      - name: productionId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Lot found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/lot.yaml#/LotResponse'
+
+lotsByItemId:
+  get:
+    tags:
+      - Lots
+    operationId: findLotsByItemId
+    summary: Find lots by item id
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Lots found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/lot.yaml#/LotResponse'
+
+expiringLots:
+  get:
+    tags:
+      - Lots
+    operationId: findExpiringLots
+    summary: Find lots expiring between dates
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Expiring lots found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/lot.yaml#/LotResponse'

@@ -1,0 +1,78 @@
+CreateItemRequest:
+  type: object
+  description: Cadastro de item com preço separado para PF e PJ.
+  required:
+    - name
+    - type
+    - baseUnit
+    - pricePf
+    - pricePj
+  example:
+    name: Pão de queijo
+    type: FINISHED_PRODUCT
+    baseUnit: UN
+    pricePf: 12.9
+    pricePj: 15.9
+  properties:
+    name:
+      type: string
+    type:
+      type: string
+      enum:
+        - INGREDIENT
+        - PACKAGING
+        - FINISHED_PRODUCT
+    baseUnit:
+      type: string
+      enum:
+        - G
+        - ML
+        - UN
+    lowStockThreshold:
+      type: number
+    criticalStockThreshold:
+      type: number
+    pricePf:
+      type: number
+    pricePj:
+      type: number
+
+ItemResponse:
+  type: object
+  description: Item persistido com os preços de venda PF e PJ.
+  properties:
+    id:
+      type: integer
+      format: int64
+    name:
+      type: string
+    type:
+      type: string
+      enum:
+        - INGREDIENT
+        - PACKAGING
+        - FINISHED_PRODUCT
+    baseUnit:
+      type: string
+      enum:
+        - G
+        - ML
+        - UN
+    active:
+      type: boolean
+    lowStockThreshold:
+      type: number
+    criticalStockThreshold:
+      type: number
+    pricePf:
+      type: number
+      example: 12.9
+    pricePj:
+      type: number
+      example: 15.9
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time

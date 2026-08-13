@@ -1,0 +1,185 @@
+SalesOrderItemRequest:
+  type: object
+  description: Item solicitado. Preços são resolvidos exclusivamente pelo backend a partir do item e do tipo autenticado do cliente; guest usa preço PF.
+  required:
+    - itemId
+    - quantity
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    quantity:
+      type: number
+  example:
+    itemId: 10
+    quantity: 2
+
+SalesOrderCustomerType:
+  type: string
+  enum:
+    - GUEST
+    - PF
+    - PJ
+
+SalesOrderCustomerAddress:
+  type: object
+  properties:
+    label:
+      type: string
+    zipCode:
+      type: string
+    street:
+      type: string
+    number:
+      type: string
+    neighborhood:
+      type: string
+    state:
+      type: string
+    city:
+      type: string
+    complement:
+      type: string
+    defaultAddress:
+      type: boolean
+
+SalesOrderCreateRequest:
+  type: object
+  description: Pedido criado no e-commerce. No checkout público, o backend força guest quando não há autenticação e deriva PF/PJ do perfil autenticado quando há cliente logado. Guest e PF usam preço PF; PJ usa preço PJ. O pedido nasce como PENDING até a confirmação do pagamento.
+  required:
+    - saleDate
+    - items
+  example:
+    saleDate: '2026-08-05'
+    customerType: PF
+    customerName: Maria Silva
+    customerEmail: maria@example.com
+    customerPhone: '11999999999'
+    deliveryAddress:
+      zipCode: '01001000'
+      street: Rua da Consolação
+      number: '123'
+      neighborhood: Centro
+      state: SP
+      city: São Paulo
+      complement: Apto 12
+      defaultAddress: true
+    note: Retirar na portaria
+    items:
+      - itemId: 10
+        quantity: 2
+  properties:
+    saleDate:
+      type: string
+      format: date
+    customerType:
+      $ref: '#/SalesOrderCustomerType'
+    customerName:
+      type: string
+    customerEmail:
+      type: string
+    customerPhone:
+      type: string
+    deliveryAddress:
+      $ref: '#/SalesOrderCustomerAddress'
+    note:
+      type: string
+    items:
+      type: array
+      items:
+        $ref: '#/SalesOrderItemRequest'
+
+SalesOrderItemResponse:
+  type: object
+  description: Snapshot do item vendido com os dois preços para auditoria e exibição no front.
+  properties:
+    id:
+      type: integer
+      format: int64
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
+    costIncomplete:
+      type: boolean
+    quantity:
+      type: number
+    unitPrice:
+      type: number
+    unitPricePf:
+      type: number
+      example: 12.9
+    unitPricePj:
+      type: number
+      example: 15.9
+    totalPrice:
+      type: number
+    unitCost:
+      type: number
+    totalCost:
+      type: number
+    grossProfit:
+      type: number
+
+SalesOrderResponse:
+  type: object
+  description: Pedido persistido com snapshot de cliente, entrega e pagamento.
+  properties:
+    id:
+      type: integer
+      format: int64
+    saleDate:
+      type: string
+      format: date
+    customerType:
+      $ref: '#/SalesOrderCustomerType'
+    customerName:
+      type: string
+    customerEmail:
+      type: string
+    customerPhone:
+      type: string
+    deliveryAddress:
+      $ref: '#/SalesOrderCustomerAddress'
+    note:
+      type: string
+    paymentStatus:
+      type: string
+      enum:
+        - PENDING
+        - APPROVED
+        - DECLINED
+        - CANCELED
+    paymentProvider:
+      type: string
+    paymentProviderTransactionId:
+      type: string
+    paymentProviderStatus:
+      type: string
+      description: Raw provider payment status captured from the webhook.
+    paymentReceiptUrl:
+      type: string
+      description: Provider receipt URL when available.
+    paymentCheckoutUrl:
+      type: string
+      description: Provider checkout URL used to create the payment link.
+    paymentInvoiceSlug:
+      type: string
+      description: Provider invoice slug returned by InfinitePay for reconciliation.
+    paidAt:
+      type: string
+      format: date-time
+    totalAmount:
+      type: number
+    totalCost:
+      type: number
+    grossProfit:
+      type: number
+    items:
+      type: array
+      items:
+        $ref: '#/SalesOrderItemResponse'
+    createdAt:
+      type: string
+      format: date-time

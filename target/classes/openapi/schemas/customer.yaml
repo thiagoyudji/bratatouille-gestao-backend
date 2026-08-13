@@ -1,0 +1,115 @@
+CustomerType:
+  type: string
+  enum:
+    - PF
+    - PJ
+
+CustomerAddressRequest:
+  type: object
+  description: Endereço salvo no perfil do customer. Campos podem ser preenchidos de forma parcial para cobrir variações reais do endereço brasileiro.
+  example:
+    label: Casa
+    zipCode: '01001000'
+    street: Rua da Consolação
+    number: '123'
+    neighborhood: Centro
+    state: SP
+    city: São Paulo
+    complement: Apto 12
+    defaultAddress: true
+  properties:
+    label:
+      type: string
+    zipCode:
+      type: string
+    street:
+      type: string
+    number:
+      type: string
+    neighborhood:
+      type: string
+    state:
+      type: string
+    city:
+      type: string
+    complement:
+      type: string
+    defaultAddress:
+      type: boolean
+
+CustomerAddressResponse:
+  type: object
+  description: Endereço persistido do customer.
+  properties:
+    label:
+      type: string
+    zipCode:
+      type: string
+    street:
+      type: string
+    number:
+      type: string
+    neighborhood:
+      type: string
+    state:
+      type: string
+    city:
+      type: string
+    complement:
+      type: string
+    defaultAddress:
+      type: boolean
+
+CustomerProfileRequest:
+  type: object
+  description: Perfil persistido do customer, separado da autenticação. PF e PJ compartilham a mesma estrutura; guest não gera perfil salvo.
+  required:
+    - customerType
+    - fullName
+    - email
+    - phone
+  example:
+    customerType: PF
+    fullName: Maria Silva
+    email: maria@example.com
+    phone: '11999999999'
+    addresses:
+      - label: Casa
+        zipCode: '01001000'
+        street: Rua da Consolação
+        number: '123'
+        neighborhood: Centro
+        state: SP
+        city: São Paulo
+        complement: Apto 12
+        defaultAddress: true
+  properties:
+    customerType:
+      $ref: '#/CustomerType'
+    fullName:
+      type: string
+    email:
+      type: string
+    phone:
+      type: string
+    addresses:
+      type: array
+      items:
+        $ref: '#/CustomerAddressRequest'
+
+CustomerProfileResponse:
+  type: object
+  description: Perfil do customer disponível para o front.
+  properties:
+    customerType:
+      $ref: '#/CustomerType'
+    fullName:
+      type: string
+    email:
+      type: string
+    phone:
+      type: string
+    addresses:
+      type: array
+      items:
+        $ref: '#/CustomerAddressResponse'
