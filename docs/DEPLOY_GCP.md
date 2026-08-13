@@ -89,62 +89,22 @@ GCP_SERVICE_ACCOUNT
 
 Use exatamente os valores impressos pelos dois `echo` acima.
 
-## 4. Secrets da aplicação no Secret Manager
+## 4. Secrets da aplicação no GitHub
 
-Os valores de produção devem ficar no Secret Manager, não nos secrets do GitHub. Crie cada secret e informe o valor quando solicitado:
+Em **Settings → Secrets and variables → Actions → Secrets**, configure:
 
 ```text
-bratatouille-prod-database-url
-bratatouille-prod-database-username
-bratatouille-prod-database-password
-bratatouille-prod-auth-jwt-secret
+DATABASE_URL=jdbc:postgresql://host:5432/database?sslmode=require
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=<database-password>
+AUTH_JWT_SECRET=<valor-gerado-localmente>
 ```
-
-Exemplo usando arquivos temporários locais:
 
 ```bash
-PROJECT_ID=project-4c4e2300-94cd-4054-992
-PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
-RUNTIME_SERVICE_ACCOUNT="$PROJECT_NUMBER-compute@developer.gserviceaccount.com"
-
-for SECRET in \
-  bratatouille-prod-database-url \
-  bratatouille-prod-database-username \
-  bratatouille-prod-database-password \
-  bratatouille-prod-auth-jwt-secret; do
-  gcloud secrets describe "$SECRET" --project="$PROJECT_ID" >/dev/null 2>&1 || \
-    gcloud secrets create "$SECRET" --replication-policy=automatic --project="$PROJECT_ID"
-done
-
-read -r -p 'DATABASE_URL: ' DATABASE_URL
-read -r -p 'DATABASE_USERNAME: ' DATABASE_USERNAME
-read -r -s -p 'DATABASE_PASSWORD: ' DATABASE_PASSWORD
-printf '\n'
-
-printf '%s' "$DATABASE_URL" | \
-  gcloud secrets versions add bratatouille-prod-database-url --data-file=- --project="$PROJECT_ID"
-printf '%s' "$DATABASE_USERNAME" | \
-  gcloud secrets versions add bratatouille-prod-database-username --data-file=- --project="$PROJECT_ID"
-printf '%s' "$DATABASE_PASSWORD" | \
-  gcloud secrets versions add bratatouille-prod-database-password --data-file=- --project="$PROJECT_ID"
-openssl rand -base64 48 | \
-  gcloud secrets versions add bratatouille-prod-auth-jwt-secret --data-file=- --project="$PROJECT_ID"
-
-for SECRET in \
-  bratatouille-prod-database-url \
-  bratatouille-prod-database-username \
-  bratatouille-prod-database-password \
-  bratatouille-prod-auth-jwt-secret; do
-  gcloud secrets add-iam-policy-binding "$SECRET" \
-    --project="$PROJECT_ID" \
-    --member="serviceAccount:$RUNTIME_SERVICE_ACCOUNT" \
-    --role=roles/secretmanager.secretAccessor
-done
+openssl rand -base64 48
 ```
 
-O valor `<database-password>` deve ser substituído antes de executar o comando. Não commite scripts com os valores reais.
-
-Depois disso, remova os secrets antigos `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` e `AUTH_JWT_SECRET` do GitHub Actions, pois o workflow não os utiliza mais.
+Não commite os valores reais nem os imprima nos logs do workflow.
 
 ## 5. Dependências
 

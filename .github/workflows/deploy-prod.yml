@@ -14,10 +14,6 @@ env:
   REGION: southamerica-east1
   SERVICE: bratatouille-backend-prod
   IMAGE: southamerica-east1-docker.pkg.dev/project-4c4e2300-94cd-4054-992/bratatouille/bratatouille-backend
-  DATABASE_URL_SECRET: bratatouille-prod-database-url
-  DATABASE_USERNAME_SECRET: bratatouille-prod-database-username
-  DATABASE_PASSWORD_SECRET: bratatouille-prod-database-password
-  AUTH_JWT_SECRET_SECRET: bratatouille-prod-auth-jwt-secret
 
 jobs:
   test:
@@ -70,6 +66,11 @@ jobs:
           docker push "${IMAGE}:${GITHUB_SHA}"
 
       - name: Deploy to Cloud Run
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
         run: |
           gcloud run deploy "${SERVICE}" \
             --project="${PROJECT_ID}" \
@@ -78,5 +79,4 @@ jobs:
             --platform=managed \
             --port=8080 \
             --allow-unauthenticated \
-            --set-env-vars="SPRING_PROFILES_ACTIVE=prod" \
-            --set-secrets="DATABASE_URL=${DATABASE_URL_SECRET}:latest,DATABASE_USERNAME=${DATABASE_USERNAME_SECRET}:latest,DATABASE_PASSWORD=${DATABASE_PASSWORD_SECRET}:latest,AUTH_JWT_SECRET=${AUTH_JWT_SECRET_SECRET}:latest"
+            --set-env-vars="^|^SPRING_PROFILES_ACTIVE=prod|DATABASE_URL=${DATABASE_URL}|DATABASE_USERNAME=${DATABASE_USERNAME}|DATABASE_PASSWORD=${DATABASE_PASSWORD}|AUTH_JWT_SECRET=${AUTH_JWT_SECRET}"
