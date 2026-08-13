@@ -15,6 +15,9 @@ paths:
   /api/auth/dashboard/users:
     $ref: './paths/auth.yaml#/dashboardUsers'
 
+  /api/customers/me:
+    $ref: './paths/customers.yaml#/myCustomerProfile'
+
   /api/stocks:
     $ref: './paths/stocks.yaml#/stocks'
   /api/stocks/{itemId}:
@@ -81,6 +84,11 @@ paths:
     $ref: './paths/sales-orders.yaml#/salesOrders'
   /api/sales-orders/{id}:
     $ref: './paths/sales-orders.yaml#/salesOrderById'
+
+  /api/payments/webhooks/infinitepay:
+    $ref: './paths/payments.yaml#/infinitePayWebhook'
+  /api/payments/infinitepay/checkouts:
+    $ref: './paths/payments.yaml#/createInfinitePayCheckout'
 
   /api/sales-reports/summary:
     $ref: './paths/sales-reports.yaml#/salesSummary'
@@ -156,6 +164,14 @@ components:
       $ref: './schemas/item.yaml#/CreateItemRequest'
     ItemResponse:
       $ref: './schemas/item.yaml#/ItemResponse'
+    CustomerProfileRequest:
+      $ref: './schemas/customer.yaml#/CustomerProfileRequest'
+    CustomerAddressRequest:
+      $ref: './schemas/customer.yaml#/CustomerAddressRequest'
+    CustomerAddressResponse:
+      $ref: './schemas/customer.yaml#/CustomerAddressResponse'
+    CustomerProfileResponse:
+      $ref: './schemas/customer.yaml#/CustomerProfileResponse'
 
     PurchaseCreateRequest:
       $ref: './schemas/purchase.yaml#/PurchaseCreateRequest'
@@ -201,6 +217,17 @@ components:
       $ref: './schemas/sales-order.yaml#/SalesOrderResponse'
     SalesOrderItemResponse:
       $ref: './schemas/sales-order.yaml#/SalesOrderItemResponse'
+    SalesOrderCustomerType:
+      $ref: './schemas/sales-order.yaml#/SalesOrderCustomerType'
+    SalesOrderCustomerAddress:
+      $ref: './schemas/sales-order.yaml#/SalesOrderCustomerAddress'
+
+    InfinitePayWebhookRequest:
+      $ref: './schemas/payments.yaml#/InfinitePayWebhookRequest'
+    InfinitePayWebhookResponse:
+      $ref: './schemas/payments.yaml#/InfinitePayWebhookResponse'
+    InfinitePayCheckoutResponse:
+      $ref: './schemas/payments.yaml#/InfinitePayCheckoutResponse'
 
     SalesSummaryResponse:
       $ref: './schemas/sales-report.yaml#/SalesSummaryResponse'
@@ -257,3 +284,5 @@ components:
       $ref: './schemas/auth.yaml#/RegisterCustomerRequest'
     CreateDashboardUserRequest:
       $ref: './schemas/auth.yaml#/CreateDashboardUserRequest'
+    CustomerType:
+      $ref: './schemas/customer.yaml#/CustomerType'

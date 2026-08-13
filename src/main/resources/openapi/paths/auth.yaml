@@ -23,7 +23,7 @@ dashboardLogin:
     tags:
       - Auth
     operationId: loginDashboard
-    summary: Login for dashboard users
+    summary: Login for internal dashboard users
     requestBody:
       required: true
       content:
@@ -43,7 +43,7 @@ ecommerceLogin:
     tags:
       - Auth
     operationId: loginEcommerce
-    summary: Login for ecommerce customers
+    summary: Login for ecommerce customers and guests
     requestBody:
       required: true
       content:
@@ -63,7 +63,7 @@ ecommerceRegister:
     tags:
       - Auth
     operationId: registerCustomer
-    summary: Register a new ecommerce customer
+    summary: Register a new PF ecommerce customer
     requestBody:
       required: true
       content:
@@ -83,7 +83,7 @@ dashboardUsers:
     tags:
       - Auth
     operationId: createDashboardUser
-    summary: Create a dashboard user
+    summary: Create a dashboard user or PJ customer account
     requestBody:
       required: true
       content:

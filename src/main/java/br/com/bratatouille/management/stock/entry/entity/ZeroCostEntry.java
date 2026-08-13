@@ -18,7 +18,7 @@ public class ZeroCostEntry {
     @ManyToOne(optional = false)
     private Item item;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 3)
     private BigDecimal quantity;
 
     @Enumerated(EnumType.STRING)

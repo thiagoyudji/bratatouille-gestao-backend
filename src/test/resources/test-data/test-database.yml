@@ -1,0 +1,116 @@
+authUsers:
+  - key: admin
+    username: admin@bratatouille.local
+    passwordHash: admin-password-hash
+    role: ADMIN
+    active: true
+  - key: customerPf
+    username: cliente.pf@bratatouille.local
+    passwordHash: customer-pf-password-hash
+    role: CUSTOMER
+    active: true
+  - key: customerPj
+    username: cliente.pj@bratatouille.local
+    passwordHash: customer-pj-password-hash
+    role: CUSTOMER
+    active: true
+
+customers:
+  - key: customerPf
+    authUser: customerPf
+    customerType: PF
+    fullName: Cliente PF Teste
+    email: cliente.pf@bratatouille.local
+    phone: '(11) 99999-1000'
+    addresses:
+      - label: Casa
+        zipCode: '01001-000'
+        street: Rua sem numero
+        number: null
+        neighborhood: Centro
+        state: SP
+        city: Sao Paulo
+        complement: null
+        defaultAddress: true
+  - key: customerPj
+    authUser: customerPj
+    customerType: PJ
+    fullName: Loja PJ Teste LTDA
+    email: financeiro@loja-pj.local
+    phone: '(11) 98888-2000'
+    addresses:
+      - label: Fiscal
+        zipCode: '20010-000'
+        street: Avenida Financeira
+        number: '1200'
+        neighborhood: Centro
+        state: RJ
+        city: Rio de Janeiro
+        complement: 8 andar
+        defaultAddress: true
+
+partners:
+  - key: ownerA
+    name: Socio A
+    active: true
+    defaultSplitPercentage: 60.00
+    roles:
+      - ADMIN
+  - key: ownerB
+    name: Socio B
+    active: true
+    defaultSplitPercentage: 40.00
+    roles:
+      - ADMIN
+
+items:
+  - key: dough
+    name: Massa artesanal
+    type: INGREDIENT
+    baseUnit: G
+    lowStockThreshold: 10.000
+    criticalStockThreshold: 5.000
+    pricePf: 2.000000
+    pricePj: 2.400000
+  - key: tomatoSauce
+    name: Molho de tomate
+    type: INGREDIENT
+    baseUnit: ML
+    lowStockThreshold: 8.000
+    criticalStockThreshold: 3.000
+    pricePf: 1.250000
+    pricePj: 1.500000
+  - key: pizzaMargherita
+    name: Pizza Margherita
+    type: FINISHED_PRODUCT
+    baseUnit: UN
+    lowStockThreshold: 10.000
+    criticalStockThreshold: 5.000
+    pricePf: 18.500000
+    pricePj: 24.900000
+
+stocks:
+  - key: doughStock
+    item: dough
+    quantity: 50.000
+    pricePf: 2.000000
+    pricePj: 2.400000
+  - key: tomatoSauceStock
+    item: tomatoSauce
+    quantity: 30.000
+    pricePf: 1.250000
+    pricePj: 1.500000
+  - key: pizzaStock
+    item: pizzaMargherita
+    quantity: 25.000
+    pricePf: 18.500000
+    pricePj: 24.900000
+
+sellableStocks:
+  - key: pizzaSellable
+    item: pizzaMargherita
+    availableQuantity: 25.000
+    infinite: false
+    enabled: true
+    pricePf: 18.500000
+    pricePj: 24.900000

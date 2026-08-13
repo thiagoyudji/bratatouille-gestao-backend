@@ -33,16 +33,20 @@ Antes de alterar código, leia:
 3. o Development Rulebook;
 4. os documentos da pasta `.agents`.
 
+Quando a mudança afetar contrato ou regra consumida externamente, leia também os services/tipos dos dois repositórios irmãos: `../bratatouille-frontend` (e-commerce) e `../bratatouille-gestao-frontend` (dashboard).
+
 Em caso de conflito, use esta prioridade:
 
-1. contrato OpenAPI para forma técnica da API;
-2. regra de negócio confirmada pelo proprietário;
+1. regra de negócio confirmada pelo proprietário;
+2. contrato OpenAPI para forma técnica da API;
 3. consistência do domínio;
 4. comportamento existente intencional;
 5. padrões arquiteturais existentes;
 6. documentos auxiliares.
 
 Não invente endpoints, DTOs, enums, nomes ou regras ausentes.
+
+O OpenAPI descreve o contrato existente, mas não legitima uma falha conceitual. Se preço, identidade, role ou transição crítica forem controláveis pelo cliente, preserve a evidência, sinalize o risco e proponha a mudança coordenada de contrato e consumidores.
 
 ## 3. Arquitetura obrigatória
 
@@ -91,6 +95,8 @@ O backend atende duas naturezas intencionais:
 As duas naturezas podem compartilhar banco e estrutura de identidade, mas DEVEM ter superfícies de API, autorização e fluxos de login claramente separados.
 
 `Partner` significa sócio/proprietário financeiro interno. Cliente PJ não é `Partner`; use conceito de cliente empresarial, como `BusinessCustomer`, conforme o contrato futuro.
+
+Os papéis atualmente implementados são `ADMIN`, `EMPLOYEE` e `CUSTOMER`. `EDITOR` e `OPERADOR` são nomes documentais antigos e não devem aparecer em contrato ou código novo. `EMPLOYEE` acessa somente Itens, Receitas, Compras, Produção, Estoque e Vendas; Dashboard, Financeiro, Operações, Sócios e Usuários são exclusivos de `ADMIN`. O backend ainda não aplica integralmente essa matriz.
 
 ## 5. Responsabilidades por camada
 
@@ -145,6 +151,8 @@ Para mudanças não triviais:
 6. implemente somente após o plano estar coerente;
 7. execute ou indique testes e validações;
 8. revise diff, imports, queries, contratos e impactos colaterais.
+
+Preserve alterações preexistentes do usuário. Não reverta nem formate arquivos fora do escopo. Diferencie na comunicação final fatos observados, inferências e recomendações, e nunca afirme que uma validação passou sem ter executado o comando.
 
 Para correção pequena e inequívoca, implemente diretamente e explique ao final.
 

@@ -9,6 +9,10 @@ import br.com.bratatouille.management.auth.entity.AuthUser;
 import br.com.bratatouille.management.auth.entity.UserRole;
 import br.com.bratatouille.management.auth.repository.AuthUserRepository;
 import br.com.bratatouille.management.auth.security.JwtService;
+import br.com.bratatouille.management.customer.dto.CustomerAddressRequest;
+import br.com.bratatouille.management.customer.dto.CustomerProfileRequest;
+import br.com.bratatouille.management.customer.entity.CustomerType;
+import br.com.bratatouille.management.customer.repository.CustomerProfileRepository;
 import br.com.bratatouille.management.common.error.ApiErrorCode;
 import br.com.bratatouille.management.common.error.AuthException;
 import org.junit.jupiter.api.Test;
@@ -38,6 +42,9 @@ class AuthServiceTest {
 
     @Mock
     private AuthUserRepository authUserRepository;
+
+    @Mock
+    private CustomerProfileRepository customerProfileRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -98,7 +105,7 @@ class AuthServiceTest {
 
         AuthException exception = assertThrows(
                 AuthException.class,
-                () -> authService.registerCustomer(new RegisterCustomerRequest("customer", "secret123"))
+                () -> authService.registerCustomer(new RegisterCustomerRequest("customer", "secret123", sampleProfile(CustomerType.PF)))
         );
 
         assertEquals(HttpStatus.CONFLICT, exception.getStatus());
@@ -108,17 +115,119 @@ class AuthServiceTest {
     }
 
     @Test
+    void registerCustomerCreatesPfProfile() {
+        Instant expiresAt = Instant.parse("2026-08-04T12:00:00Z");
+
+        when(authUserRepository.existsByUsername("customer")).thenReturn(false);
+        when(passwordEncoder.encode("secret123")).thenReturn("hashed-secret");
+        when(jwtService.generateToken(any(AuthUser.class))).thenReturn("jwt-token");
+        when(jwtService.extractExpiresAt("jwt-token")).thenReturn(expiresAt);
+        when(authUserRepository.save(any(AuthUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(customerProfileRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AuthResponse response = authService.registerCustomer(
+                new RegisterCustomerRequest("customer", "secret123", sampleProfile(CustomerType.PF))
+        );
+
+        assertEquals("jwt-token", response.token());
+        verify(customerProfileRepository).save(any());
+    }
+
+    @Test
+    void registerCustomerAcceptsPartialAddressData() {
+        when(authUserRepository.existsByUsername("customer")).thenReturn(false);
+        when(passwordEncoder.encode("secret123")).thenReturn("hashed-secret");
+        when(jwtService.generateToken(any(AuthUser.class))).thenReturn("jwt-token");
+        when(jwtService.extractExpiresAt("jwt-token")).thenReturn(Instant.parse("2026-08-04T12:00:00Z"));
+        when(authUserRepository.save(any(AuthUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(customerProfileRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        authService.registerCustomer(
+                new RegisterCustomerRequest(
+                        "customer",
+                        "secret123",
+                        new CustomerProfileRequest(
+                                CustomerType.PF,
+                                "Customer Name",
+                                "customer@example.com",
+                                "11999999999",
+                                java.util.List.of(new CustomerAddressRequest(
+                                        null,
+                                        "01001000",
+                                        "Street",
+                                        null,
+                                        null,
+                                        null,
+                                        "Sao Paulo",
+                                        null,
+                                        true
+                                ))
+                        )
+                )
+        );
+
+        ArgumentCaptor<br.com.bratatouille.management.customer.entity.CustomerProfile> profileCaptor =
+                ArgumentCaptor.forClass(br.com.bratatouille.management.customer.entity.CustomerProfile.class);
+
+        verify(customerProfileRepository).save(profileCaptor.capture());
+        assertEquals(1, profileCaptor.getValue().getAddresses().size());
+        assertEquals("01001000", profileCaptor.getValue().getAddresses().getFirst().getZipCode());
+        assertEquals("Sao Paulo", profileCaptor.getValue().getAddresses().getFirst().getCity());
+    }
+
+    @Test
     void createDashboardUserRejectsCustomerRole() {
+        when(passwordEncoder.encode("secret123")).thenReturn("hashed-secret");
+
         AuthException exception = assertThrows(
                 AuthException.class,
                 () -> authService.createDashboardUser(
-                        new CreateDashboardUserRequest("employee", "secret123", UserRole.CUSTOMER)
+                        new CreateDashboardUserRequest("employee", "secret123", UserRole.CUSTOMER, sampleProfile(CustomerType.PF))
                 )
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals(ApiErrorCode.AUTH_CUSTOMER_ROLE_VIA_ECOMMERCE, exception.getCode());
-        assertEquals("customer role must be created via ecommerce", exception.getMessage());
+        assertEquals(ApiErrorCode.INVALID_REQUEST, exception.getCode());
+        assertEquals("customer type is invalid for this registration flow", exception.getMessage());
+    }
+
+    @Test
+    void createDashboardUserCreatesPjProfileForCustomerFlow() {
+        Instant expiresAt = Instant.parse("2026-08-04T12:00:00Z");
+
+        when(authUserRepository.existsByUsername("business-customer")).thenReturn(false);
+        when(passwordEncoder.encode("secret123")).thenReturn("hashed-secret");
+        when(jwtService.generateToken(any(AuthUser.class))).thenReturn("jwt-token");
+        when(jwtService.extractExpiresAt("jwt-token")).thenReturn(expiresAt);
+        when(authUserRepository.save(any(AuthUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(customerProfileRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AuthResponse response = authService.createDashboardUser(
+                new CreateDashboardUserRequest("business-customer", "secret123", UserRole.CUSTOMER, sampleProfile(CustomerType.PJ))
+        );
+
+        assertEquals("jwt-token", response.token());
+        verify(customerProfileRepository).save(any());
+    }
+
+    private CustomerProfileRequest sampleProfile(CustomerType customerType) {
+        return new CustomerProfileRequest(
+                customerType,
+                "Customer Name",
+                "customer@example.com",
+                "11999999999",
+                java.util.List.of(new CustomerAddressRequest(
+                        "home",
+                        "01001000",
+                        "Street",
+                        "123",
+                        "Center",
+                        "SP",
+                        "Sao Paulo",
+                        null,
+                        true
+                ))
+        );
     }
 
     @Test

@@ -20,7 +20,7 @@ Existem dois fluxos separados:
 - login administrativo próprio;
 - acesso apenas aos endpoints internos;
 - poucos usuários conhecidos;
-- papel principal: `ADMIN`.
+- papéis implementados: `ADMIN` e `EMPLOYEE`.
 
 ### E-commerce
 
@@ -48,11 +48,13 @@ A modelagem deve evitar papéis sem necessidade.
 Conceitos mínimos:
 
 - conta/credencial;
-- tipo de usuário: `ADMIN` ou `CUSTOMER`;
+- papel de usuário: `ADMIN`, `EMPLOYEE` ou `CUSTOMER`;
 - tipo de cliente: `PF` ou `PJ`, aplicável somente a cliente;
 - estado ativo/inativo, caso necessário.
 
 Não criar `pricingTier` enquanto PF/PJ representar integralmente a regra de preço.
+
+`EDITOR` e `OPERADOR` são nomes antigos. Use `EMPLOYEE`. Esse papel acessa somente Itens, Receitas, Compras, Produção, Estoque e Vendas. Dashboard, Financeiro, Operações, Sócios e Usuários são exclusivos de `ADMIN`; o `SecurityConfig` ainda precisa ser restringido.
 
 ## JWT
 

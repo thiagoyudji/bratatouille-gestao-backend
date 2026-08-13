@@ -23,9 +23,51 @@ public class SalesOrder {
     @Column(nullable = false)
     private LocalDate saleDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private SalesCustomerType customerType;
+
     private String customerName;
 
+    private String customerEmail;
+
+    private String customerPhone;
+
+    private String deliveryZipCode;
+
+    private String deliveryStreet;
+
+    private String deliveryNumber;
+
+    private String deliveryNeighborhood;
+
+    private String deliveryState;
+
+    private String deliveryCity;
+
+    private String deliveryComplement;
+
     private String note;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private SalesPaymentStatus paymentStatus;
+
+    private String paymentProvider;
+
+    private String paymentProviderTransactionId;
+
+    private String paymentProviderStatus;
+
+    @Column(length = 512)
+    private String paymentReceiptUrl;
+
+    @Column(length = 512)
+    private String paymentCheckoutUrl;
+
+    private String paymentInvoiceSlug;
+
+    private LocalDateTime paidAt;
 
     @Column(nullable = false, precision = 19, scale = 6)
     private BigDecimal totalAmount;
@@ -45,22 +87,80 @@ public class SalesOrder {
     protected SalesOrder() {
     }
 
-    private SalesOrder(LocalDate saleDate, String customerName, String note) {
+    private SalesOrder(
+            LocalDate saleDate,
+            SalesCustomerType customerType,
+            String customerName,
+            String customerEmail,
+            String customerPhone,
+            String deliveryZipCode,
+            String deliveryStreet,
+            String deliveryNumber,
+            String deliveryNeighborhood,
+            String deliveryState,
+            String deliveryCity,
+            String deliveryComplement,
+            String note
+    ) {
         if (saleDate == null) {
             throw new IllegalArgumentException("saleDate is required");
         }
 
+        if (customerType == null) {
+            customerType = SalesCustomerType.GUEST;
+        }
+
         this.saleDate = saleDate;
+        this.customerType = customerType;
         this.customerName = customerName;
+        this.customerEmail = customerEmail;
+        this.customerPhone = customerPhone;
+        this.deliveryZipCode = deliveryZipCode;
+        this.deliveryStreet = deliveryStreet;
+        this.deliveryNumber = deliveryNumber;
+        this.deliveryNeighborhood = deliveryNeighborhood;
+        this.deliveryState = deliveryState;
+        this.deliveryCity = deliveryCity;
+        this.deliveryComplement = deliveryComplement;
         this.note = note;
+        this.paymentStatus = SalesPaymentStatus.PENDING;
     }
 
-    public static SalesOrder create(LocalDate saleDate, String customerName, String note, List<SalesOrderItemData> itemsData) {
+    public static SalesOrder create(
+            LocalDate saleDate,
+            SalesCustomerType customerType,
+            String customerName,
+            String customerEmail,
+            String customerPhone,
+            String deliveryZipCode,
+            String deliveryStreet,
+            String deliveryNumber,
+            String deliveryNeighborhood,
+            String deliveryState,
+            String deliveryCity,
+            String deliveryComplement,
+            String note,
+            List<SalesOrderItemData> itemsData
+    ) {
         if (itemsData == null || itemsData.isEmpty()) {
             throw new IllegalArgumentException("sale must have at least one item");
         }
 
-        SalesOrder salesOrder = new SalesOrder(saleDate, customerName, note);
+        SalesOrder salesOrder = new SalesOrder(
+                saleDate,
+                customerType,
+                customerName,
+                customerEmail,
+                customerPhone,
+                deliveryZipCode,
+                deliveryStreet,
+                deliveryNumber,
+                deliveryNeighborhood,
+                deliveryState,
+                deliveryCity,
+                deliveryComplement,
+                note
+        );
 
         itemsData.forEach(itemData -> salesOrder.items.add(
                 SalesOrderItem.create(
@@ -68,6 +168,8 @@ public class SalesOrder {
                         itemData.item(),
                         itemData.quantity(),
                         itemData.unitPrice(),
+                        itemData.unitPricePf(),
+                        itemData.unitPricePj(),
                         itemData.unitCost(),
                         itemData.costIncomplete()
                 )
@@ -100,7 +202,43 @@ public class SalesOrder {
 
     public String getCustomerName() { return customerName; }
 
+    public SalesCustomerType getCustomerType() { return customerType; }
+
+    public String getCustomerEmail() { return customerEmail; }
+
+    public String getCustomerPhone() { return customerPhone; }
+
+    public String getDeliveryZipCode() { return deliveryZipCode; }
+
+    public String getDeliveryStreet() { return deliveryStreet; }
+
+    public String getDeliveryNumber() { return deliveryNumber; }
+
+    public String getDeliveryNeighborhood() { return deliveryNeighborhood; }
+
+    public String getDeliveryState() { return deliveryState; }
+
+    public String getDeliveryCity() { return deliveryCity; }
+
+    public String getDeliveryComplement() { return deliveryComplement; }
+
     public String getNote() { return note; }
+
+    public SalesPaymentStatus getPaymentStatus() { return paymentStatus; }
+
+    public String getPaymentProvider() { return paymentProvider; }
+
+    public String getPaymentProviderTransactionId() { return paymentProviderTransactionId; }
+
+    public String getPaymentProviderStatus() { return paymentProviderStatus; }
+
+    public String getPaymentReceiptUrl() { return paymentReceiptUrl; }
+
+    public String getPaymentCheckoutUrl() { return paymentCheckoutUrl; }
+
+    public String getPaymentInvoiceSlug() { return paymentInvoiceSlug; }
+
+    public LocalDateTime getPaidAt() { return paidAt; }
 
     public BigDecimal getTotalAmount() { return totalAmount; }
 
@@ -111,4 +249,40 @@ public class SalesOrder {
     public LocalDateTime getCreatedAt() { return createdAt; }
 
     public List<SalesOrderItem> getItems() { return Collections.unmodifiableList(items); }
+
+    public boolean isPaymentFinalized() {
+        return paymentStatus != SalesPaymentStatus.PENDING;
+    }
+
+    public void updatePayment(
+            SalesPaymentStatus paymentStatus,
+            String paymentProvider,
+            String paymentProviderTransactionId,
+            String paymentProviderStatus,
+            String paymentReceiptUrl,
+            String paymentCheckoutUrl,
+            String paymentInvoiceSlug,
+            LocalDateTime paidAt
+    ) {
+        if (paymentStatus == null) {
+            throw new IllegalArgumentException("paymentStatus is required");
+        }
+
+        this.paymentStatus = paymentStatus;
+        this.paymentProvider = paymentProvider;
+        this.paymentProviderTransactionId = paymentProviderTransactionId;
+        this.paymentProviderStatus = paymentProviderStatus;
+        this.paymentReceiptUrl = paymentReceiptUrl;
+        this.paymentCheckoutUrl = paymentCheckoutUrl;
+        this.paymentInvoiceSlug = paymentInvoiceSlug;
+
+        if (paidAt != null) {
+            this.paidAt = paidAt;
+        }
+    }
+
+    public void updateCheckoutMetadata(String paymentCheckoutUrl, String paymentInvoiceSlug) {
+        this.paymentCheckoutUrl = paymentCheckoutUrl;
+        this.paymentInvoiceSlug = paymentInvoiceSlug;
+    }
 }

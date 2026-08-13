@@ -7,6 +7,7 @@ import br.com.bratatouille.management.auth.dto.LoginRequest;
 import br.com.bratatouille.management.auth.dto.RegisterCustomerRequest;
 import br.com.bratatouille.management.auth.entity.UserRole;
 import br.com.bratatouille.management.auth.service.AuthService;
+import br.com.bratatouille.management.customer.mapper.CustomerContractMapper;
 import br.com.bratatouille.management.generated.api.AuthApiDelegate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -15,9 +16,11 @@ import org.springframework.stereotype.Component;
 public class AuthApiDelegateImpl implements AuthApiDelegate {
 
     private final AuthService authService;
+    private final CustomerContractMapper customerContractMapper;
 
-    public AuthApiDelegateImpl(AuthService authService) {
+    public AuthApiDelegateImpl(AuthService authService, CustomerContractMapper customerContractMapper) {
         this.authService = authService;
+        this.customerContractMapper = customerContractMapper;
     }
 
     @Override
@@ -64,14 +67,19 @@ public class AuthApiDelegateImpl implements AuthApiDelegate {
     }
 
     private RegisterCustomerRequest toDomainRequest(br.com.bratatouille.management.generated.model.RegisterCustomerRequest request) {
-        return new RegisterCustomerRequest(request.getUsername(), request.getPassword());
+        return new RegisterCustomerRequest(
+                request.getUsername(),
+                request.getPassword(),
+                customerContractMapper.toDomainProfile(request.getProfile())
+        );
     }
 
     private CreateDashboardUserRequest toDomainRequest(br.com.bratatouille.management.generated.model.CreateDashboardUserRequest request) {
         return new CreateDashboardUserRequest(
                 request.getUsername(),
                 request.getPassword(),
-                toDomainRole(request.getRole())
+                toDomainRole(request.getRole()),
+                customerContractMapper.toDomainProfile(request.getProfile())
         );
     }
 

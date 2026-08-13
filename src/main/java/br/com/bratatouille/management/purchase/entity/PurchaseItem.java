@@ -26,6 +26,7 @@ public class PurchaseItem {
     @Column(nullable = false, precision = 19, scale = 3)
     private BigDecimal quantity;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UnitType unit;
 

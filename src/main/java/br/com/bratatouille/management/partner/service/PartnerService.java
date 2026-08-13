@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -57,7 +58,7 @@ public class PartnerService {
 
     public PartnerResponse findById(Long id) {
         Partner partner = partnerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
+                .orElseThrow(() -> new NoSuchElementException("Partner not found"));
 
         return partnerMapper.toResponse(partner);
     }

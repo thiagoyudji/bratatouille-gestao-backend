@@ -103,7 +103,7 @@ public class DashboardService {
         response.setMarginReliable(!Boolean.TRUE.equals(salesSummary.getHasCostIncomplete()));
         response.setMarginWarning(
                 Boolean.TRUE.equals(salesSummary.getHasCostIncomplete())
-                        ? "Margin may be unreliable because some sales have incomplete cost."
+                        ? "Margin may be unreliable because some approved sales have incomplete cost."
                         : null
         );
 

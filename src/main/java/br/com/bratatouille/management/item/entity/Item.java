@@ -1,6 +1,7 @@
 package br.com.bratatouille.management.item.entity;
 
 import jakarta.persistence.*;
+import br.com.bratatouille.management.common.util.MoneyUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -31,6 +32,12 @@ public class Item {
     @Column(precision = 19, scale = 3)
     private BigDecimal criticalStockThreshold;
 
+    @Column(precision = 19, scale = 6)
+    private BigDecimal pricePf;
+
+    @Column(precision = 19, scale = 6)
+    private BigDecimal pricePj;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -47,6 +54,18 @@ public class Item {
             BigDecimal lowStockThreshold,
             BigDecimal criticalStockThreshold
     ) {
+        this(name, type, baseUnit, lowStockThreshold, criticalStockThreshold, null, null);
+    }
+
+    public Item(
+            String name,
+            ItemType type,
+            UnitType baseUnit,
+            BigDecimal lowStockThreshold,
+            BigDecimal criticalStockThreshold,
+            BigDecimal pricePf,
+            BigDecimal pricePj
+    ) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name is required");
         }
@@ -60,12 +79,15 @@ public class Item {
         }
 
         validateThresholds(lowStockThreshold, criticalStockThreshold);
+        validatePrices(pricePf, pricePj);
 
         this.name = name;
         this.type = type;
         this.baseUnit = baseUnit;
         this.lowStockThreshold = lowStockThreshold;
         this.criticalStockThreshold = criticalStockThreshold;
+        this.pricePf = normalizeMoney(pricePf);
+        this.pricePj = normalizeMoney(pricePj);
         this.active = true;
     }
 
@@ -94,7 +116,20 @@ public class Item {
             BigDecimal criticalStockThreshold,
             Boolean active
     ) {
+        update(name, type, lowStockThreshold, criticalStockThreshold, active, null, null);
+    }
+
+    public void update(
+            String name,
+            ItemType type,
+            BigDecimal lowStockThreshold,
+            BigDecimal criticalStockThreshold,
+            Boolean active,
+            BigDecimal pricePf,
+            BigDecimal pricePj
+    ) {
         validateThresholds(lowStockThreshold, criticalStockThreshold);
+        validatePrices(pricePf, pricePj);
 
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name is required");
@@ -108,10 +143,26 @@ public class Item {
         this.type = type;
         this.lowStockThreshold = lowStockThreshold;
         this.criticalStockThreshold = criticalStockThreshold;
+        this.pricePf = normalizeMoney(pricePf);
+        this.pricePj = normalizeMoney(pricePj);
 
         if (active != null) {
             this.active = active;
         }
+    }
+
+    private void validatePrices(BigDecimal pricePf, BigDecimal pricePj) {
+        if (pricePf != null && pricePf.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("pricePf cannot be negative");
+        }
+
+        if (pricePj != null && pricePj.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("pricePj cannot be negative");
+        }
+    }
+
+    private BigDecimal normalizeMoney(BigDecimal value) {
+        return value == null ? null : MoneyUtils.normalize(value);
     }
 
     public Long getId() {
@@ -140,6 +191,14 @@ public class Item {
 
     public BigDecimal getCriticalStockThreshold() {
         return criticalStockThreshold;
+    }
+
+    public BigDecimal getPricePf() {
+        return pricePf;
+    }
+
+    public BigDecimal getPricePj() {
+        return pricePj;
     }
 
     public LocalDateTime getCreatedAt() {

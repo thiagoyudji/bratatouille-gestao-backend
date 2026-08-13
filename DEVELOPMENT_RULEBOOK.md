@@ -74,7 +74,7 @@ System MUST:
 - responses MUST be in brazilian portuguese
 - AI MUST read existing source before implementing
 - AI MUST follow existing patterns
-- AI MUST output code in chat
+- AI MUST preserve user changes and report the files actually changed
 - AI MUST respect OpenAPI contract
 
 ### MUST NOT:
@@ -99,11 +99,14 @@ System MUST:
 
 When rules conflict, follow this order:
 
-1. OpenAPI contract
-2. Domain consistency
-3. Existing code patterns
-4. Rulebook architecture rules
-5. UX/UI rules
+1. Business rule confirmed by the product owner
+2. OpenAPI contract for the technical API shape
+3. Domain consistency and security invariants
+4. Intentional existing behavior and tests
+5. Rulebook architecture rules
+6. UX/UI rules
+
+OpenAPI is not authority for deciding business policy. A technically valid contract that delegates price, identity, authorization or critical state transitions to a client MUST be reported and corrected through a coordinated contract change.
 
 ---
 
@@ -266,7 +269,7 @@ MUST:
 
 ---
 
-## EDITOR
+## EMPLOYEE
 
 MUST manage:
 - items
@@ -279,6 +282,8 @@ MUST NOT access:
 - financial summaries
 - partner balances
 - profit visibility
+
+`EDITOR` and `OPERADOR` are obsolete names. `EMPLOYEE` MUST NOT access dashboard overview, partners, operational costs/losses, zero-cost entries, users or any financial view. The frontend already applies this matrix; the backend `SecurityConfig` still requires alignment.
 
 ---
 
@@ -737,12 +742,15 @@ Financial visibility MUST reflect:
 
 ### MUST support:
 
-- B2C price
-- partner price
+- PF (retail/B2C) price
+- PJ (business customer) price
 
 ### MUST:
 
-- hide partner price from regular users
+- derive PF/PJ from authenticated customer identity whenever authentication exists
+- hide PJ price from PF customers when the commercial rule requires it
+- keep `Partner` pricing and financial ownership completely separate from customer pricing
+- treat backend-calculated price and total as authoritative
 
 ---
 
@@ -763,13 +771,26 @@ Frontend MUST mirror backend reality.
 
 ---
 
-# 22.1 FRONTEND STACK
+# 22.1 FRONTEND STACKS
 
-- React
-- TypeScript
-- Vite
-- Tailwind
-- shadcn/ui
+The two frontends are independent and MUST preserve their established stacks:
+
+### External e-commerce (`bratatouille-frontend`)
+
+- Next.js App Router
+- React and TypeScript
+- Tailwind CSS 4 plus existing CSS patterns
+- native `fetch` through a centralized API layer
+
+### Internal dashboard (`bratatouille-gestao-frontend`)
+
+- Vite, React and TypeScript
+- React Router
+- TanStack Query
+- Tailwind CSS and Radix components
+- OpenAPI-generated TypeScript types
+
+Agents MUST NOT migrate either frontend or force a shared stack without an explicit product decision.
 
 ---
 

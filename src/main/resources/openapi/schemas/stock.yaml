@@ -5,6 +5,10 @@ AdjustStockRequest:
   properties:
     quantity:
       type: number
+    pricePf:
+      type: number
+    pricePj:
+      type: number
 
 StockResponse:
   type: object
@@ -30,6 +34,10 @@ StockResponse:
         - ML
         - UN
     quantity:
+      type: number
+    pricePf:
+      type: number
+    pricePj:
       type: number
 
 StockMovementResponse:

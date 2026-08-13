@@ -3,7 +3,8 @@ salesSummary:
     tags:
       - SalesReports
     operationId: getSalesSummary
-    summary: Get sales summary
+    summary: Get sales summary by period
+    description: Aggregates the real sold amount, cost and gross profit for the period. PF, PJ and guest sales are already reflected in the stored order totals.
     parameters:
       - name: startDate
         in: query
@@ -30,7 +31,8 @@ salesProductPerformance:
     tags:
       - SalesReports
     operationId: getSalesProductPerformance
-    summary: Get sales product performance
+    summary: Get sales product performance by period
+    description: Groups product performance using the actual sold price stored on each order item, so PF and PJ prices remain consistent in reporting.
     parameters:
       - name: startDate
         in: query

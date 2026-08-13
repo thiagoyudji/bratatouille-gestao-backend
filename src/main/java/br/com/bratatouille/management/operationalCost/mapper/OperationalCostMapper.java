@@ -2,11 +2,10 @@ package br.com.bratatouille.management.operationalCost.mapper;
 
 import br.com.bratatouille.management.generated.model.OperationalCostResponse;
 import br.com.bratatouille.management.generated.model.OperationalCostSplitResponse;
+import br.com.bratatouille.management.common.mapper.ApiResponseMapperSupport;
 import br.com.bratatouille.management.operationalCost.entity.OperationalCost;
 import br.com.bratatouille.management.operationalCost.entity.OperationalCostSplit;
 import org.springframework.stereotype.Component;
-
-import java.time.ZoneOffset;
 
 @Component
 public class OperationalCostMapper {
@@ -21,7 +20,7 @@ public class OperationalCostMapper {
         response.setPaidByPartnerName(operationalCost.getPaidBy().getName());
         response.setAmount(operationalCost.getAmount());
         response.setDescription(operationalCost.getDescription());
-        response.setCreatedAt(operationalCost.getCreatedAt().atOffset(ZoneOffset.UTC));
+        response.setCreatedAt(ApiResponseMapperSupport.toUtc(operationalCost.getCreatedAt()));
 
         response.setSplits(
                 operationalCost.getSplits()

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class LotService {
@@ -32,14 +33,14 @@ public class LotService {
 
     public LotResponse findById(Long id) {
         Lot lot = lotRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Lot not found"));
+                .orElseThrow(() -> new NoSuchElementException("Lot not found"));
 
         return lotMapper.toResponse(lot);
     }
 
     public LotResponse findByProductionId(Long productionId) {
         Lot lot = lotRepository.findByProductionId(productionId)
-                .orElseThrow(() -> new IllegalArgumentException("Lot not found for production"));
+                .orElseThrow(() -> new NoSuchElementException("Lot not found for production"));
 
         return lotMapper.toResponse(lot);
     }

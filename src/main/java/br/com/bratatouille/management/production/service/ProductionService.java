@@ -15,13 +15,13 @@ import br.com.bratatouille.management.stock.repository.StockRepository;
 import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.stereotype.Service;
 import br.com.bratatouille.management.lot.entity.Lot;
-import br.com.bratatouille.management.lot.repository.LotRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ProductionService {
@@ -32,7 +32,6 @@ public class ProductionService {
     private final CostService costService;
     private final StockRepository stockRepository;
     private final StockService stockService;
-    private final LotRepository lotRepository;
 
     public ProductionService(
             ProductionRepository productionRepository,
@@ -40,7 +39,6 @@ public class ProductionService {
             ProductionMapper productionMapper,
             CostService costService,
             StockRepository stockRepository,
-            LotRepository lotRepository,
             StockService stockService
     ) {
         this.productionRepository = productionRepository;
@@ -49,7 +47,6 @@ public class ProductionService {
         this.costService = costService;
         this.stockRepository = stockRepository;
         this.stockService = stockService;
-        this.lotRepository = lotRepository;
     }
 
     @Transactional
@@ -57,7 +54,7 @@ public class ProductionService {
         validate(request);
 
         Recipe recipe = recipeRepository.findById(request.getRecipeId())
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
+                .orElseThrow(() -> new NoSuchElementException("Recipe not found"));
 
         if (!Boolean.TRUE.equals(recipe.getActive())) {
             throw new IllegalArgumentException("Recipe is inactive");
@@ -96,15 +93,6 @@ public class ProductionService {
                 saved.getId()
         );
 
-        Lot lot = Lot.create(
-                saved,
-                recipe.getOutputItem(),
-                saved.getProductionDate(),
-                producedQuantity
-        );
-
-        lotRepository.save(lot);
-
         return productionMapper.toResponse(saved);
     }
 
@@ -117,7 +105,7 @@ public class ProductionService {
 
     public ProductionResponse findById(Long id) {
         Production production = productionRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Production not found"));
+                .orElseThrow(() -> new NoSuchElementException("Production not found"));
 
         return productionMapper.toResponse(production);
     }
@@ -151,7 +139,7 @@ public class ProductionService {
 
     private void validateStock(RecipeItem recipeItem, BigDecimal requiredQuantity) {
         Stock stock = stockRepository.findByItemId(recipeItem.getItem().getId())
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NoSuchElementException(
                         "Stock not found for item: " + recipeItem.getItem().getName()
                 ));
 

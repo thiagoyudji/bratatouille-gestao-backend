@@ -3,6 +3,7 @@ package br.com.bratatouille.management.sales.service;
 import br.com.bratatouille.management.common.util.MoneyUtils;
 import br.com.bratatouille.management.generated.model.SalesProductPerformanceResponse;
 import br.com.bratatouille.management.generated.model.SalesSummaryResponse;
+import br.com.bratatouille.management.sales.entity.SalesPaymentStatus;
 import br.com.bratatouille.management.sales.repository.SalesOrderRepository;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +24,21 @@ public class SalesReportService {
     public SalesSummaryResponse getSummary(LocalDate startDate, LocalDate endDate) {
         validatePeriod(startDate, endDate);
 
-        BigDecimal totalAmount = MoneyUtils.normalize(salesOrderRepository.sumTotalAmountBetween(startDate, endDate));
-        BigDecimal totalCost = MoneyUtils.normalize(salesOrderRepository.sumTotalCostBetween(startDate, endDate));
-        BigDecimal grossProfit = MoneyUtils.normalize(salesOrderRepository.sumGrossProfitBetween(startDate, endDate));
-        Long totalOrders = salesOrderRepository.countOrdersBetween(startDate, endDate);
-        Long costIncompleteItems = salesOrderRepository.countCostIncompleteItemsBetween(startDate, endDate);
+        BigDecimal totalAmount = MoneyUtils.normalize(
+                salesOrderRepository.sumTotalAmountBetween(startDate, endDate, SalesPaymentStatus.APPROVED)
+        );
+        BigDecimal totalCost = MoneyUtils.normalize(
+                salesOrderRepository.sumTotalCostBetween(startDate, endDate, SalesPaymentStatus.APPROVED)
+        );
+        BigDecimal grossProfit = MoneyUtils.normalize(
+                salesOrderRepository.sumGrossProfitBetween(startDate, endDate, SalesPaymentStatus.APPROVED)
+        );
+        Long totalOrders = salesOrderRepository.countOrdersBetween(startDate, endDate, SalesPaymentStatus.APPROVED);
+        Long costIncompleteItems = salesOrderRepository.countCostIncompleteItemsBetween(
+                startDate,
+                endDate,
+                SalesPaymentStatus.APPROVED
+        );
 
         BigDecimal averageTicket = totalOrders == 0
                 ? BigDecimal.ZERO
@@ -56,7 +67,7 @@ public class SalesReportService {
     public List<SalesProductPerformanceResponse> getProductPerformance(LocalDate startDate, LocalDate endDate) {
         validatePeriod(startDate, endDate);
 
-        return salesOrderRepository.findProductPerformanceBetween(startDate, endDate)
+        return salesOrderRepository.findProductPerformanceBetween(startDate, endDate, SalesPaymentStatus.APPROVED)
                 .stream()
                 .map(this::toProductPerformanceResponse)
                 .toList();

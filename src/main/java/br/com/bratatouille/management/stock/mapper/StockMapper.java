@@ -22,6 +22,8 @@ public class StockMapper {
         response.setItemType(StockResponse.ItemTypeEnum.valueOf(stock.getItem().getType().name()));
         response.setBaseUnit(StockResponse.BaseUnitEnum.valueOf(stock.getItem().getBaseUnit().name()));
         response.setQuantity(stock.getQuantity());
+        response.setPricePf(stock.getPricePf() != null ? stock.getPricePf() : stock.getItem().getPricePf());
+        response.setPricePj(stock.getPricePj() != null ? stock.getPricePj() : stock.getItem().getPricePj());
 
         return response;
     }

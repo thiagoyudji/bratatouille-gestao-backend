@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class SellableStockService {
@@ -45,7 +46,7 @@ public class SellableStockService {
 
     public SellableStockResponse findByItemId(Long itemId) {
         SellableStock sellableStock = sellableStockRepository.findByItemId(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Sellable stock not found"));
+                .orElseThrow(() -> new NoSuchElementException("Sellable stock not found"));
 
         return toResponse(sellableStock);
     }
@@ -55,7 +56,7 @@ public class SellableStockService {
         validateRequest(request);
 
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new NoSuchElementException("Item not found"));
 
         validateFinishedProduct(item);
 
@@ -66,13 +67,17 @@ public class SellableStockService {
                         item,
                         request.getAvailableQuantity(),
                         request.getInfinite(),
-                        request.getEnabled()
+                        request.getEnabled(),
+                        item.getPricePf(),
+                        item.getPricePj()
                 ));
 
         sellableStock.update(
                 request.getAvailableQuantity(),
                 request.getInfinite(),
-                request.getEnabled()
+                request.getEnabled(),
+                item.getPricePf(),
+                item.getPricePj()
         );
 
         SellableStock saved = sellableStockRepository.save(sellableStock);
@@ -88,7 +93,7 @@ public class SellableStockService {
 
     private void validateRequest(SellableStockUpsertRequest request) {
         if (request == null) {
-            throw new IllegalArgumentException("request is required");
+            throw new IllegalArgumentException("request body is required");
         }
 
         if (request.getInfinite() == null) {
@@ -109,12 +114,16 @@ public class SellableStockService {
         if (item.getType() != ItemType.FINISHED_PRODUCT) {
             throw new IllegalArgumentException("Only finished products can be sellable");
         }
+
+        if (item.getPricePf() == null || item.getPricePj() == null) {
+            throw new IllegalArgumentException("item prices are required for sellable stock");
+        }
     }
 
     @Transactional
     public void decreaseAfterSale(Item item, BigDecimal quantity) {
         SellableStock sellableStock = sellableStockRepository.findByItemIdForUpdate(item.getId())
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NoSuchElementException(
                         "Sellable stock not configured for item: " + item.getName()
                 ));
 
@@ -123,6 +132,22 @@ public class SellableStockService {
         }
 
         sellableStock.decrease(quantity);
+
+        sellableStockRepository.save(sellableStock);
+    }
+
+    @Transactional
+    public void increaseAfterSaleReversal(Item item, BigDecimal quantity) {
+        SellableStock sellableStock = sellableStockRepository.findByItemIdForUpdate(item.getId())
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Sellable stock not configured for item: " + item.getName()
+                ));
+
+        if (!Boolean.TRUE.equals(sellableStock.getEnabled())) {
+            throw new IllegalArgumentException("Sellable stock is disabled for item: " + item.getName());
+        }
+
+        sellableStock.increase(quantity);
 
         sellableStockRepository.save(sellableStock);
     }

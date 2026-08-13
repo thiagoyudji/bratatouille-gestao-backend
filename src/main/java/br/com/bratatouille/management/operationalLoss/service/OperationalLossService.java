@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class OperationalLossService {
@@ -49,7 +50,7 @@ public class OperationalLossService {
         validate(request);
 
         Item item = itemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Item not found"));
+                .orElseThrow(() -> new NoSuchElementException("Item not found"));
 
         BigDecimal unitCost = costService.findRequiredUnitCost(item);
 
@@ -82,7 +83,7 @@ public class OperationalLossService {
 
     public OperationalLossResponse findById(Long id) {
         OperationalLoss loss = operationalLossRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Operational loss not found"));
+                .orElseThrow(() -> new NoSuchElementException("Operational loss not found"));
 
         return operationalLossMapper.toResponse(loss);
     }

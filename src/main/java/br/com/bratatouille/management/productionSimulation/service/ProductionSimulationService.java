@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ProductionSimulationService {
@@ -35,7 +36,7 @@ public class ProductionSimulationService {
         validateRequest(recipeId, quantity);
 
         Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
+                .orElseThrow(() -> new NoSuchElementException("Recipe not found"));
 
         if (!Boolean.TRUE.equals(recipe.getActive())) {
             throw new IllegalArgumentException("Recipe is inactive");
