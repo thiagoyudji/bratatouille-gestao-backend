@@ -5,7 +5,6 @@ import br.com.bratatouille.management.auth.entity.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,25 +34,25 @@ public class JwtService {
         Instant expiresAt = now.plus(expirationMinutes, ChronoUnit.MINUTES);
 
         return Jwts.builder()
-                .setSubject(user.getUsername())
+                .subject(user.getUsername())
                 .claim("role", user.getRole().name())
-                .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(expiresAt))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiresAt))
+                .signWith(key)
                 .compact();
     }
 
     public String extractUsername(String token) {
-        return getClaims(token).getBody().getSubject();
+        return getClaims(token).getPayload().getSubject();
     }
 
     public UserRole extractRole(String token) {
-        String role = getClaims(token).getBody().get("role", String.class);
+        String role = getClaims(token).getPayload().get("role", String.class);
         return UserRole.valueOf(role);
     }
 
     public Instant extractExpiresAt(String token) {
-        return getClaims(token).getBody().getExpiration().toInstant();
+        return getClaims(token).getPayload().getExpiration().toInstant();
     }
 
     public boolean isTokenValid(String token, String expectedUsername) {
@@ -61,10 +60,10 @@ public class JwtService {
     }
 
     private Jws<Claims> getClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
+        return Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token);
+                .parseSignedClaims(token);
     }
 
     private SecretKey buildKey(String secret) {
