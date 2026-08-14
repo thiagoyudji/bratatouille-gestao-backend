@@ -96,3 +96,5 @@ Com JWT stateless sem refresh token, logout é responsabilidade do cliente ao re
 ## Separação de Partner
 
 `Partner` é o sócio interno envolvido em rateios financeiros. Não representa usuário cliente PJ e não deve ser reutilizado como entidade de autenticação comercial.
+
+Regra de negócio adicional: somente uma conta de dashboard com papel `ADMIN` pode ser cadastrada ou associada como sócio. Isso não cria um `Partner` automaticamente; a criação/associação é uma operação explícita. O vínculo deve permitir rastrear compras e contas por usuário administrativo. A associação é 1:1 e imutável após criada; inativação não deve apagar histórico.

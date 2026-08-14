@@ -1,21 +1,23 @@
 # Roadmap de consolidação do backend
 
-Este documento registra o diagnóstico técnico realizado em 2026-08-05 e a ordem acordada para implementação. Ele deve ser atualizado conforme cada etapa for decidida, implementada e validada.
+Este documento preserva o diagnóstico realizado em 2026-08-05. Ele é histórico e não deve ser lido sozinho como retrato atual do sistema. Pendências vigentes devem ser mantidas em `docs/PENDENCIAS_TECNICAS.md` e decisões de negócio em `docs/REGRAS_NEGOCIO_CADASTROS_E_COMPRAS.md`.
+
+As novas regras de cadastros, compras e preços registradas em 2026-08-14 estão consolidadas em `docs/REGRAS_NEGOCIO_CADASTROS_E_COMPRAS.md` e devem ser tratadas como decisão de negócio antes das etapas de contrato e persistência relacionadas.
 
 ## Estado inicial observado
 
 - O worktree contém uma reestruturação extensa ainda não consolidada.
 - Antes da etapa 1, a aplicação principal usava `spring.jpa.hibernate.ddl-auto=create-drop` em conjunto com Flyway.
 - Antes da etapa 1, existia somente uma migration parcial para metadados de pagamento, que pressupunha a existência de `sales_orders`.
-- O webhook da InfinitePay é público e ainda não valida autenticidade, valor ou unicidade do evento.
+- O webhook da InfinitePay é público e não possui assinatura criptográfica documentada; o backend confirma o pagamento via `payment_check`, valida valor, invoice/NSU e evita reutilização de transação.
 - A criação do checkout reserva estoque antes da chamada externa e não possui recuperação explícita para falha ou timeout.
 - Permanecem dois fluxos de bootstrap administrativo, incluindo um controller temporário.
 - O OpenAPI não declara Bearer Security nem as respostas padronizadas de erro nas operações.
-- As APIs interna e externa ainda compartilham parte da superfície `/api/**`.
+- As APIs interna e externa ainda compartilham parte da superfície `/api/**`; a separação completa de superfícies continua pendente.
 - Pedidos externos não estão vinculados de forma suficiente à identidade autenticada.
 - Listagens e cálculos usam várias consultas não paginadas e precisam de revisão de fetch/N+1.
 
-## Ordem de implementação
+## Ordem de implementação registrada na auditoria
 
 ### 1. Banco e Flyway
 
@@ -109,6 +111,6 @@ Recomendação técnica registrada: liberar estoque em falha definitiva; manter 
 - Resultado da suíte: 41 testes executados, 40 aprovados e 1 falha preexistente em `FinancialClosingServiceTest.getClosedSummaryRejectsMissingClosing`; o teste espera `IllegalArgumentException`, enquanto o serviço lança `NoSuchElementException`. A falha não percorre banco nem foi causada pela baseline.
 - Etapa 2: 10 testes de integração de webhook, checkout, dashboard e relatórios aprovados; 2 testes do client `payment_check` aprovados; execução adicional do webhook após adequação da resposta de retry com 7 testes aprovados.
 
-## Retomada
+## Retomada histórica
 
-O trabalho foi pausado por solicitação do proprietário em 2026-08-05, após a implementação da baseline e da reconciliação InfinitePay via `payment_check`. Retomar pelas decisões abertas da etapa 3 acima. A eventual assinatura privada do webhook continua pendente e deverá ser adicionada antes do `payment_check` quando a documentação da InfinitePay estiver disponível.
+O trabalho foi pausado por solicitação do proprietário em 2026-08-05, após a implementação da baseline e da reconciliação InfinitePay via `payment_check`. A assinatura privada do webhook continua pendente apenas se a documentação/credencial do provedor exigir esse mecanismo; não deve ser tratada como pré-condição para o `payment_check` sem evidência.
