@@ -1,6 +1,8 @@
-# Deploy de produção no Google Cloud
+# Deploy de produção no Google Cloud (legado)
 
-O workflow `.github/workflows/deploy-prod.yml` executa os testes e faz deploy automático no Cloud Run após push na `master`.
+> O workflow de produção atual publica no Render. As instruções abaixo só se aplicam ao fluxo antigo de Cloud Run.
+
+O workflow `.github/workflows/deploy-prod.yml` executa os testes e faz deploy automático no Cloud Run após push na `master`. Também pode ser executado manualmente em **Actions → Deploy production → Run workflow**; nesse caso, após os testes, ele publica e implanta a versão selecionada.
 
 ## 1. Preparar o projeto GCP
 
@@ -112,6 +114,6 @@ O repositório possui Dependabot para atualizações do Maven e das GitHub Actio
 
 ## 6. Executar
 
-Após o merge na `master`, o workflow `Deploy production` executa automaticamente.
+Após o merge na `master`, o workflow `Deploy production` executa automaticamente. Pull requests executam somente os testes. Para iniciar um deploy manual, use **Actions → Deploy production → Run workflow**.
 
 Cada execução publica uma imagem versionada pelo SHA do commit e atualiza o serviço `bratatouille-backend-prod` na região `southamerica-east1`.
