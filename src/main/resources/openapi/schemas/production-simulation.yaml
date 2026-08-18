@@ -38,9 +38,36 @@ ProductionSimulationResponse:
       type: string
     quantity:
       type: number
+      description: Estimated pots that can be produced from the supplied inputs
     estimatedTotalCost:
       type: number
     items:
       type: array
       items:
         $ref: '#/ProductionSimulationItemResponse'
+ProductionSimulationRequest:
+  type: object
+  required:
+    - recipeId
+    - inputs
+  properties:
+    recipeId:
+      type: integer
+      format: int64
+    inputs:
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/ProductionSimulationInputRequest'
+
+ProductionSimulationInputRequest:
+  type: object
+  required:
+    - itemId
+    - quantity
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    quantity:
+      type: number

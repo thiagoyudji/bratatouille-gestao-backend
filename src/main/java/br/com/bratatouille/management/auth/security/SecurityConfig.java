@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers(POST, "/api/auth/dashboard/login").permitAll()
                         .requestMatchers(POST, "/api/auth/ecommerce/login").permitAll()
                         .requestMatchers(POST, "/api/auth/ecommerce/register").permitAll()
+                        .requestMatchers(GET, "/api/auth/dashboard/users").hasRole("ADMIN")
                         .requestMatchers(POST, "/api/auth/dashboard/users").hasRole("ADMIN")
                         .requestMatchers(POST, "/api/payments/infinitepay/checkouts").permitAll()
                         .requestMatchers(POST, "/api/payments/webhooks/infinitepay").permitAll()
@@ -65,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(GET, "/api/sales-orders/**").hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers(GET, "/api/admin/sellable-stocks/**").hasRole("ADMIN")
                         .requestMatchers(PUT, "/api/admin/sellable-stocks/**").hasRole("ADMIN")
+                        .requestMatchers("/api/partners/**").hasRole("ADMIN")
                         .requestMatchers("/api/financial/**", "/api/financial-closings/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/api/dashboard/**",
@@ -72,7 +74,6 @@ public class SecurityConfig {
                                 "/api/lots/**",
                                 "/api/operational-costs/**",
                                 "/api/operational-losses/**",
-                                "/api/partners/**",
                                 "/api/productions/**",
                                 "/api/production-simulation/**",
                                 "/api/purchases/**",

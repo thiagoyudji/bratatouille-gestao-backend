@@ -50,6 +50,26 @@ public final class PurchaseSplitCalculator {
         return splits;
     }
 
+    public static List<PurchaseSplitData> calculateFromAmounts(
+            BigDecimal totalAmount,
+            List<PartnerAmountData> amounts
+    ) {
+        if (amounts == null || amounts.isEmpty()) {
+            throw new IllegalArgumentException("custom reimbursements are required");
+        }
+        List<PurchaseSplitData> splits = amounts.stream().map(data -> {
+            validatePartner(data.partner());
+            if (data.amount() == null || data.amount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("reimbursement amount must be greater than zero");
+            }
+            BigDecimal percentage = data.amount().multiply(ONE_HUNDRED)
+                    .divide(totalAmount, 6, RoundingMode.HALF_UP);
+            return new PurchaseSplitData(data.partner(), percentage, MoneyUtils.normalize(data.amount()));
+        }).toList();
+        validateAmountTotal(totalAmount, splits);
+        return splits;
+    }
+
     private static PurchaseSplitData calculate(
             BigDecimal totalAmount,
             Partner partner,

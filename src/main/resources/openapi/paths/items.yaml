@@ -4,6 +4,13 @@ items:
       - Items
     operationId: findAllItems
     summary: List all items
+    parameters:
+      - name: search
+        in: query
+        required: false
+        description: Filter available active items by name fragment
+        schema:
+          type: string
     responses:
       '200':
         description: Items found
@@ -49,6 +56,52 @@ itemById:
     responses:
       '200':
         description: Item found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/item.yaml#/ItemResponse'
+
+  put:
+    tags:
+      - Items
+    operationId: updateItem
+    summary: Update item presentation and stock limits
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/item.yaml#/UpdateItemRequest'
+    responses:
+      '200':
+        description: Item updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/item.yaml#/ItemResponse'
+
+  patch:
+    tags:
+      - Items
+    operationId: deactivateItem
+    summary: Deactivate item without deleting historical references
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Item deactivated
         content:
           application/json:
             schema:

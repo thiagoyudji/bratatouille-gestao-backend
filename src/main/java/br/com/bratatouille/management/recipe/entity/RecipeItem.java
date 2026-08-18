@@ -9,8 +9,6 @@ import java.math.BigDecimal;
 @Table(name = "recipe_items")
 public class RecipeItem {
 
-    private static final BigDecimal FULL_YIELD = BigDecimal.ONE;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,40 +24,33 @@ public class RecipeItem {
     @Column(nullable = false, precision = 19, scale = 3)
     private BigDecimal quantity;
 
-    @Column(nullable = false, precision = 5, scale = 4)
-    private BigDecimal yieldPercentage;
-
     protected RecipeItem() {
     }
 
     private RecipeItem(
             Recipe recipe,
             Item item,
-            BigDecimal quantity,
-            BigDecimal yieldPercentage
+            BigDecimal quantity
     ) {
-        validate(recipe, item, quantity, yieldPercentage);
+        validate(recipe, item, quantity);
 
         this.recipe = recipe;
         this.item = item;
         this.quantity = quantity;
-        this.yieldPercentage = normalizeYield(yieldPercentage);
     }
 
     public static RecipeItem create(
             Recipe recipe,
             Item item,
-            BigDecimal quantity,
-            BigDecimal yieldPercentage
+            BigDecimal quantity
     ) {
-        return new RecipeItem(recipe, item, quantity, yieldPercentage);
+        return new RecipeItem(recipe, item, quantity);
     }
 
     private static void validate(
             Recipe recipe,
             Item item,
-            BigDecimal quantity,
-            BigDecimal yieldPercentage
+            BigDecimal quantity
     ) {
         if (recipe == null) {
             throw new IllegalArgumentException("recipe is required");
@@ -73,15 +64,6 @@ public class RecipeItem {
             throw new IllegalArgumentException("quantity must be greater than zero");
         }
 
-        BigDecimal normalizedYield = normalizeYield(yieldPercentage);
-
-        if (normalizedYield.compareTo(BigDecimal.ZERO) <= 0 || normalizedYield.compareTo(BigDecimal.ONE) > 0) {
-            throw new IllegalArgumentException("yieldPercentage must be between 0 and 1");
-        }
-    }
-
-    private static BigDecimal normalizeYield(BigDecimal yieldPercentage) {
-        return yieldPercentage == null ? FULL_YIELD : yieldPercentage;
     }
 
     public Long getId() {
@@ -100,7 +82,4 @@ public class RecipeItem {
         return quantity;
     }
 
-    public BigDecimal getYieldPercentage() {
-        return yieldPercentage;
-    }
 }

@@ -60,7 +60,6 @@ class RecipeServiceIT {
         assertEquals(1, created.getItems().size());
         assertEquals(flour.getId(), created.getItems().get(0).getItemId());
         assertEquals(new BigDecimal("2.000"), created.getItems().get(0).getQuantity());
-        assertEquals(0, new BigDecimal("1.0000").compareTo(created.getItems().get(0).getYieldPercentage()));
 
         RecipeUpdateRequest updateRequest = new RecipeUpdateRequest();
         updateRequest.setName("Cake base v2");

@@ -1,6 +1,7 @@
 package br.com.bratatouille.management.partner.controller;
 
 import br.com.bratatouille.management.generated.api.PartnersApiDelegate;
+import br.com.bratatouille.management.generated.model.AssociatePartnerUserRequest;
 import br.com.bratatouille.management.generated.model.CreatePartnerRequest;
 import br.com.bratatouille.management.generated.model.PartnerResponse;
 import br.com.bratatouille.management.partner.service.PartnerService;
@@ -32,5 +33,13 @@ public class PartnerApiDelegateImpl implements PartnersApiDelegate {
     @Override
     public ResponseEntity<PartnerResponse> findPartnerById(Long id) {
         return ResponseEntity.ok(partnerService.findById(id));
+    }
+
+    @Override
+    public ResponseEntity<PartnerResponse> associatePartnerUser(
+            Long id,
+            AssociatePartnerUserRequest request
+    ) {
+        return ResponseEntity.ok(partnerService.associateUser(id, request.getAuthUserId()));
     }
 }

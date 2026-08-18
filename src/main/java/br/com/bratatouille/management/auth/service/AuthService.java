@@ -74,6 +74,11 @@ public class AuthService {
         return authenticate(request, Set.of(UserRole.CUSTOMER));
     }
 
+    @Transactional(readOnly = true)
+    public List<AuthUser> findDashboardUsers() {
+        return authUserRepository.findByRoleInOrderByUsernameAsc(List.copyOf(DASHBOARD_ROLES));
+    }
+
     @Transactional
     public AuthResponse registerCustomer(RegisterCustomerRequest request) {
         if (authUserRepository.existsByUsername(request.username())) {

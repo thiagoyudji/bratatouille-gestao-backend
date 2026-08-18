@@ -1,6 +1,8 @@
 package br.com.bratatouille.management.productionSimulation.service;
 
 import br.com.bratatouille.management.generated.model.ProductionSimulationItemResponse;
+import br.com.bratatouille.management.generated.model.ProductionSimulationInputRequest;
+import br.com.bratatouille.management.generated.model.ProductionSimulationRequest;
 import br.com.bratatouille.management.generated.model.ProductionSimulationResponse;
 import br.com.bratatouille.management.generated.model.PurchaseCreateRequest;
 import br.com.bratatouille.management.generated.model.PurchaseItemRequest;
@@ -68,19 +70,19 @@ class ProductionSimulationServiceIT {
         assertEquals(cake.getId(), response.getOutputItemId());
         assertEquals("Cake", response.getOutputItemName());
         assertEquals(new BigDecimal("3"), response.getQuantity());
-        assertEquals(0, new BigDecimal("24.000000").compareTo(response.getEstimatedTotalCost()));
+        assertEquals(0, new BigDecimal("12.000000").compareTo(response.getEstimatedTotalCost()));
         assertEquals(1, response.getItems().size());
 
         ProductionSimulationItemResponse item = response.getItems().get(0);
         assertEquals(flour.getId(), item.getItemId());
         assertEquals("Flour", item.getItemName());
-        assertEquals(0, new BigDecimal("12.000000").compareTo(item.getRequiredQuantity()));
+        assertEquals(0, new BigDecimal("6.000000").compareTo(item.getRequiredQuantity()));
         assertEquals(0, new BigDecimal("6.000000").compareTo(item.getUsableQuantity()));
-        assertEquals(0, new BigDecimal("6.000000").compareTo(item.getLossQuantity()));
-        assertEquals(0, new BigDecimal("0.5000").compareTo(item.getYieldPercentage()));
+        assertEquals(0, new BigDecimal("0.000000").compareTo(item.getLossQuantity()));
+        assertEquals(0, new BigDecimal("1.0000").compareTo(item.getYieldPercentage()));
         assertEquals(0, new BigDecimal("10.000").compareTo(item.getCurrentStock()));
         assertEquals(0, new BigDecimal("2.000000").compareTo(item.getUnitCost()));
-        assertEquals(0, new BigDecimal("24.000000").compareTo(item.getTotalCost()));
+        assertEquals(0, new BigDecimal("12.000000").compareTo(item.getTotalCost()));
     }
 
     @Test
@@ -95,6 +97,37 @@ class ProductionSimulationServiceIT {
         recipeService.deactivate(recipeId);
 
         assertThrows(IllegalArgumentException.class, () -> productionSimulationService.simulate(recipeId, new BigDecimal("1")));
+    }
+
+    @Test
+    void simulateFromInputsUsesManualQuantitiesAndRoundsPotsDown() {
+        Partner payer = savePartner("Manual Simulation Partner");
+        Item flour = saveItem("Manual Flour", ItemType.INGREDIENT);
+        Item cake = saveItem("Manual Cake", ItemType.FINISHED_PRODUCT);
+        seedPurchase(payer, flour, new BigDecimal("20.000"), new BigDecimal("40.00"));
+
+        RecipeCreateRequest recipeRequest = new RecipeCreateRequest();
+        recipeRequest.setName("Manual recipe");
+        recipeRequest.setOutputItemId(cake.getId());
+        recipeRequest.setYieldQuantity(new BigDecimal("10"));
+        RecipeItemRequest recipeItem = new RecipeItemRequest();
+        recipeItem.setItemId(flour.getId());
+        recipeItem.setQuantity(new BigDecimal("3"));
+        recipeRequest.setItems(List.of(recipeItem));
+        Long recipeId = recipeService.create(recipeRequest).getId();
+
+        ProductionSimulationInputRequest input = new ProductionSimulationInputRequest();
+        input.setItemId(flour.getId());
+        input.setQuantity(new BigDecimal("4"));
+        ProductionSimulationRequest simulationRequest = new ProductionSimulationRequest();
+        simulationRequest.setRecipeId(recipeId);
+        simulationRequest.setInputs(List.of(input));
+
+        ProductionSimulationResponse response = productionSimulationService.simulateFromInputs(simulationRequest);
+
+        assertEquals(new BigDecimal("13"), response.getQuantity());
+        assertEquals(new BigDecimal("4"), response.getItems().get(0).getUsableQuantity());
+        assertEquals(0, new BigDecimal("0.000000").compareTo(response.getItems().get(0).getMissingQuantity()));
     }
 
     private Partner savePartner(String name) {
@@ -149,7 +182,6 @@ class ProductionSimulationServiceIT {
         RecipeItemRequest item = new RecipeItemRequest();
         item.setItemId(flour.getId());
         item.setQuantity(new BigDecimal("2.000"));
-        item.setYieldPercentage(new BigDecimal("0.5000"));
 
         request.setItems(List.of(item));
 

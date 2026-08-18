@@ -9,8 +9,11 @@ import br.com.bratatouille.management.auth.entity.UserRole;
 import br.com.bratatouille.management.auth.service.AuthService;
 import br.com.bratatouille.management.customer.mapper.CustomerContractMapper;
 import br.com.bratatouille.management.generated.api.AuthApiDelegate;
+import br.com.bratatouille.management.generated.model.DashboardUserResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class AuthApiDelegateImpl implements AuthApiDelegate {
@@ -56,6 +59,18 @@ public class AuthApiDelegateImpl implements AuthApiDelegate {
             br.com.bratatouille.management.generated.model.CreateDashboardUserRequest request
     ) {
         return ResponseEntity.ok(toGeneratedResponse(authService.createDashboardUser(toDomainRequest(request))));
+    }
+
+    @Override
+    public ResponseEntity<List<DashboardUserResponse>> listDashboardUsers() {
+        return ResponseEntity.ok(authService.findDashboardUsers().stream().map(user ->
+                new DashboardUserResponse()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .role(DashboardUserResponse.RoleEnum.fromValue(user.getRole().name()))
+                        .active(user.getActive())
+                        .createdAt(user.getCreatedAt().atOffset(java.time.ZoneOffset.UTC))
+        ).toList());
     }
 
     private BootstrapAdminRequest toDomainRequest(br.com.bratatouille.management.generated.model.BootstrapAdminRequest request) {
