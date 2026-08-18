@@ -17,6 +17,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -82,12 +83,30 @@ public class ProductionSimulationService {
                 ProductionSimulationInputRequest::getQuantity,
                 BigDecimal::add
         ));
+        if (supplied.values().stream().anyMatch(quantity -> quantity == null || quantity.compareTo(BigDecimal.ZERO) < 0)) {
+            throw new IllegalArgumentException("input quantities cannot be negative");
+        }
+        Set<Long> recipeInputIds = recipe.getItems().stream()
+                .map(recipeItem -> recipeItem.getItem().getId())
+                .collect(Collectors.toSet());
+        if (supplied.keySet().stream().anyMatch(itemId -> itemId == null || !recipeInputIds.contains(itemId))) {
+            throw new IllegalArgumentException("simulation inputs must belong to the selected recipe");
+        }
+        recipe.getItems().forEach(recipeItem -> {
+            BigDecimal quantity = supplied.get(recipeItem.getItem().getId());
+            if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("all recipe inputs must be informed");
+            }
+            if (recipeItem.getItem().getType() == br.com.bratatouille.management.item.entity.ItemType.FINISHED_PRODUCT) {
+                throw new IllegalArgumentException("finished products cannot be simulation inputs");
+            }
+        });
         BigDecimal factor = recipe.getItems().stream()
                 .map(item -> supplied.getOrDefault(item.getItem().getId(), BigDecimal.ZERO)
                         .divide(item.getQuantity(), 6, RoundingMode.DOWN))
                 .min(BigDecimal::compareTo)
                 .orElse(BigDecimal.ZERO);
-        BigDecimal pots = factor.multiply(recipe.getYieldQuantity());
+        BigDecimal pots = factor.multiply(recipe.getYieldQuantity()).setScale(0, RoundingMode.DOWN);
         List<ProductionSimulationItemResponse> items = recipe.getItems().stream()
                 .map(item -> simulateInputItem(item, supplied.getOrDefault(item.getItem().getId(), BigDecimal.ZERO), factor))
                 .toList();

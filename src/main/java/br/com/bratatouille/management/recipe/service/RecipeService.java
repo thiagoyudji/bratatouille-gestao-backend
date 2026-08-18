@@ -127,6 +127,14 @@ public class RecipeService {
                 .map(itemRequest -> {
                     Item item = findItem(itemRequest.getItemId());
 
+                    if (item.getType() == ItemType.FINISHED_PRODUCT) {
+                        throw new IllegalArgumentException("finished products cannot be recipe inputs");
+                    }
+
+                    if (!Boolean.TRUE.equals(item.isActive())) {
+                        throw new IllegalArgumentException("inactive items cannot be recipe inputs");
+                    }
+
                     return new ItemQuantityData(
                             item,
                             itemRequest.getQuantity()

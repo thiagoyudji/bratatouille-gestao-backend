@@ -55,11 +55,7 @@ public class PurchaseService {
     public PurchaseResponse create(PurchaseCreateRequest request) {
         validate(request);
 
-        Partner payer = request.getPaidByPartnerId() == null
-                ? partnerRepository.findFirstByNameIgnoreCaseAndActiveTrue("Bratatouille")
-                    .orElseThrow(() -> new NoSuchElementException("Bratatouille partner not found"))
-                : partnerRepository.findById(request.getPaidByPartnerId())
-                    .orElseThrow(() -> new NoSuchElementException("Partner not found"));
+        Partner payer = resolvePayer(request);
 
         if (!Boolean.TRUE.equals(payer.getActive())) {
             throw new IllegalArgumentException("payer partner must be active");
@@ -88,6 +84,24 @@ public class PurchaseService {
         registerStockEntries(saved);
 
         return purchaseMapper.toResponse(saved);
+    }
+
+    private Partner resolvePayer(PurchaseCreateRequest request) {
+        PurchaseCreateRequest.PayerTypeEnum payerType = request.getPayerType();
+
+        if (payerType == PurchaseCreateRequest.PayerTypeEnum.BRATATOUILLE
+                || (payerType == null && request.getPaidByPartnerId() == null)) {
+            return partnerRepository.findFirstByNameIgnoreCaseAndActiveTrue("Bratatouille")
+                    .orElseThrow(() -> new NoSuchElementException("Bratatouille partner not found"));
+        }
+
+        if (payerType == PurchaseCreateRequest.PayerTypeEnum.PARTNER
+                && request.getPaidByPartnerId() == null) {
+            throw new IllegalArgumentException("paidByPartnerId is required when payerType is PARTNER");
+        }
+
+        return partnerRepository.findById(request.getPaidByPartnerId())
+                .orElseThrow(() -> new NoSuchElementException("Partner not found"));
     }
 
     public List<PurchaseResponse> findAll() {

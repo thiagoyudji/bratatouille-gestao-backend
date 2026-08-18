@@ -27,8 +27,8 @@ public class ItemApiDelegateImpl implements ItemsApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<ItemResponse>> findAllItems() {
-        return ResponseEntity.ok(itemService.findAll());
+    public ResponseEntity<List<ItemResponse>> findAllItems(String search) {
+        return ResponseEntity.ok(itemService.findAll(search));
     }
 
     @Override

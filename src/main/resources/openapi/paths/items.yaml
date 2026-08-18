@@ -4,6 +4,13 @@ items:
       - Items
     operationId: findAllItems
     summary: List all items
+    parameters:
+      - name: search
+        in: query
+        required: false
+        description: Filter available active items by name fragment
+        schema:
+          type: string
     responses:
       '200':
         description: Items found

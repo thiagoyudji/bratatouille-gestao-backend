@@ -1,10 +1,17 @@
 PurchaseCreateRequest:
   type: object
   required:
+    - payerType
     - purchaseDate
     - supplier
     - items
   properties:
+    payerType:
+      type: string
+      description: Explicit payer identity. BRATATOUILLE means company cash; PARTNER requires paidByPartnerId.
+      enum:
+        - BRATATOUILLE
+        - PARTNER
     paidByPartnerId:
       type: integer
       format: int64

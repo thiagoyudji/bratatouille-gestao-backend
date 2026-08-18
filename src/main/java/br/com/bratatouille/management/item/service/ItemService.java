@@ -45,8 +45,12 @@ public class ItemService {
         return itemMapper.toResponse(saved);
     }
 
-    public List<ItemResponse> findAll() {
-        return itemRepository.findAll()
+    public List<ItemResponse> findAll(String search) {
+        List<Item> items = search == null || search.isBlank()
+                ? itemRepository.findAll()
+                : itemRepository.findByActiveTrueAndNameContainingIgnoreCase(search.trim());
+
+        return items
             .stream()
             .map(itemMapper::toResponse)
             .toList();

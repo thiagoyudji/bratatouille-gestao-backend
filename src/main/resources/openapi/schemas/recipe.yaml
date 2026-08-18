@@ -9,9 +9,6 @@ RecipeItemRequest:
       format: int64
     quantity:
       type: number
-    yieldPercentage:
-      type: number
-      deprecated: true
 
 RecipeCreateRequest:
   type: object
