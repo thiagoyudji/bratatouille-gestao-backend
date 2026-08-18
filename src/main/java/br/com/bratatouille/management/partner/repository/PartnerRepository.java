@@ -10,4 +10,8 @@ import java.util.List;
 public interface PartnerRepository extends JpaRepository<Partner, Long> {
 
     List<Partner> findByActiveTrue();
+
+    boolean existsByAuthUserId(Long authUserId);
+
+    java.util.Optional<Partner> findFirstByNameIgnoreCaseAndActiveTrue(String name);
 }

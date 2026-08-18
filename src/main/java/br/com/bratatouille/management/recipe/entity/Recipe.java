@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,9 @@ public class Recipe {
     @JoinColumn(name = "output_item_id", nullable = false)
     private Item outputItem;
 
+    @Column(nullable = false, precision = 19, scale = 3)
+    private BigDecimal yieldQuantity;
+
     @Column(nullable = false)
     private Boolean active;
 
@@ -42,33 +46,42 @@ public class Recipe {
     protected Recipe() {
     }
 
-    private Recipe(String name, Item outputItem) {
+    private Recipe(String name, Item outputItem, BigDecimal yieldQuantity) {
         validateHeader(name, outputItem);
+        validateYieldQuantity(yieldQuantity);
 
         this.name = name;
         this.outputItem = outputItem;
+        this.yieldQuantity = yieldQuantity;
         this.active = true;
     }
 
-    public static Recipe create(String name, Item outputItem, List<ItemQuantityData> itemsData) {
+    public static Recipe create(String name, Item outputItem, BigDecimal yieldQuantity, List<ItemQuantityData> itemsData) {
         validateItemsData(itemsData);
         validateDuplicatedItems(itemsData);
         validateOutputItemIsNotInput(outputItem, itemsData);
 
-        Recipe recipe = new Recipe(name, outputItem);
+        Recipe recipe = new Recipe(name, outputItem, yieldQuantity);
         recipe.replaceItems(itemsData);
 
         return recipe;
     }
 
-    public void update(String name, Item outputItem, List<ItemQuantityData> itemsData) {
+    @Deprecated
+    public static Recipe create(String name, Item outputItem, List<ItemQuantityData> itemsData) {
+        return create(name, outputItem, BigDecimal.ONE, itemsData);
+    }
+
+    public void update(String name, Item outputItem, BigDecimal yieldQuantity, List<ItemQuantityData> itemsData) {
         validateHeader(name, outputItem);
         validateItemsData(itemsData);
         validateDuplicatedItems(itemsData);
         validateOutputItemIsNotInput(outputItem, itemsData);
+        validateYieldQuantity(yieldQuantity);
 
         this.name = name;
         this.outputItem = outputItem;
+        this.yieldQuantity = yieldQuantity;
 
         replaceItems(itemsData);
     }
@@ -92,8 +105,7 @@ public class Recipe {
             RecipeItem recipeItem = RecipeItem.create(
                     this,
                     itemData.item(),
-                    itemData.quantity(),
-                    itemData.yieldPercentage()
+                    itemData.quantity()
             );
 
             this.items.add(recipeItem);
@@ -121,6 +133,12 @@ public class Recipe {
     private static void validateItemsData(List<ItemQuantityData> itemsData) {
         if (itemsData == null || itemsData.isEmpty()) {
             throw new IllegalArgumentException("recipe must have at least one item");
+        }
+    }
+
+    private static void validateYieldQuantity(BigDecimal yieldQuantity) {
+        if (yieldQuantity == null || yieldQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("yieldQuantity must be greater than zero");
         }
     }
 
@@ -154,6 +172,10 @@ public class Recipe {
 
     public Item getOutputItem() {
         return outputItem;
+    }
+
+    public BigDecimal getYieldQuantity() {
+        return yieldQuantity;
     }
 
     public Boolean getActive() {

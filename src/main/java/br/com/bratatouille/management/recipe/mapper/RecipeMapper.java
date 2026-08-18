@@ -18,6 +18,7 @@ public class RecipeMapper {
         response.setName(recipe.getName());
         response.setOutputItemId(recipe.getOutputItem().getId());
         response.setOutputItemName(recipe.getOutputItem().getName());
+        response.setYieldQuantity(recipe.getYieldQuantity());
         response.setActive(recipe.getActive());
 
         response.setItems(
@@ -39,7 +40,6 @@ public class RecipeMapper {
         response.setItemId(recipeItem.getItem().getId());
         response.setItemName(recipeItem.getItem().getName());
         response.setQuantity(recipeItem.getQuantity());
-        response.setYieldPercentage(recipeItem.getYieldPercentage());
         response.setUnit(recipeItem.getItem().getBaseUnit().name());
 
         return response;

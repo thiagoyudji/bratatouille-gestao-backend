@@ -11,13 +11,14 @@ RecipeItemRequest:
       type: number
     yieldPercentage:
       type: number
-      default: 1
+      deprecated: true
 
 RecipeCreateRequest:
   type: object
   required:
     - name
     - outputItemId
+    - yieldQuantity
     - items
   properties:
     name:
@@ -25,6 +26,8 @@ RecipeCreateRequest:
     outputItemId:
       type: integer
       format: int64
+    yieldQuantity:
+      type: number
     items:
       type: array
       items:
@@ -35,6 +38,7 @@ RecipeUpdateRequest:
   required:
     - name
     - outputItemId
+    - yieldQuantity
     - items
   properties:
     name:
@@ -42,6 +46,8 @@ RecipeUpdateRequest:
     outputItemId:
       type: integer
       format: int64
+    yieldQuantity:
+      type: number
     items:
       type: array
       items:
@@ -56,8 +62,6 @@ RecipeItemResponse:
     itemName:
       type: string
     quantity:
-      type: number
-    yieldPercentage:
       type: number
     unit:
       type: string
@@ -75,6 +79,8 @@ RecipeResponse:
       format: int64
     outputItemName:
       type: string
+    yieldQuantity:
+      type: number
     active:
       type: boolean
     items:

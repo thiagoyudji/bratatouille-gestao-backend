@@ -111,10 +111,11 @@ public class ProductionService {
     }
 
     private ProductionItemData buildProductionItemData(RecipeItem recipeItem, BigDecimal producedQuantity) {
-        BigDecimal usableQuantity = recipeItem.getQuantity().multiply(producedQuantity);
+        BigDecimal usableQuantity = recipeItem.getQuantity().multiply(producedQuantity)
+                .divide(recipeItem.getRecipe().getYieldQuantity(), 6, RoundingMode.HALF_UP);
 
         BigDecimal consumedQuantity = usableQuantity.divide(
-                recipeItem.getYieldPercentage(),
+                BigDecimal.ONE,
                 6,
                 RoundingMode.HALF_UP
         );
@@ -123,7 +124,7 @@ public class ProductionService {
 
         BigDecimal unitCost = costService.findUnitCostOrZero(recipeItem.getItem());
 
-        BigDecimal lossQuantity = consumedQuantity.subtract(usableQuantity);
+        BigDecimal lossQuantity = BigDecimal.ZERO;
         BigDecimal totalCost = unitCost.multiply(consumedQuantity);
 
         return new ProductionItemData(
@@ -131,7 +132,7 @@ public class ProductionService {
                 consumedQuantity,
                 usableQuantity,
                 lossQuantity,
-                recipeItem.getYieldPercentage(),
+                BigDecimal.ONE,
                 unitCost,
                 totalCost
         );

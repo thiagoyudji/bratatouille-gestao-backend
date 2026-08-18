@@ -138,4 +138,15 @@ public class SellableStockService {
             throw new IllegalArgumentException("Sellable stock is not available for item: " + item.getName());
         }
     }
+
+    /** Compatibility hook for operational-loss orchestration; losses do not reduce virtual stock. */
+    @Transactional
+    public void decreaseAfterLossIfConfigured(Item item, BigDecimal quantity) {
+        if (item == null || quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) return;
+        sellableStockRepository.findByItemId(item.getId()).ifPresent(stock -> {
+            if (!Boolean.TRUE.equals(stock.getInfinite())) {
+                // Physical loss is already recorded by StockService; virtual availability remains explicit.
+            }
+        });
+    }
 }

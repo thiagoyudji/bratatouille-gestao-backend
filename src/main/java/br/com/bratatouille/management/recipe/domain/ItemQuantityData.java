@@ -6,7 +6,9 @@ import java.math.BigDecimal;
 
 public record ItemQuantityData(
         Item item,
-        BigDecimal quantity,
-        BigDecimal yieldPercentage
+        BigDecimal quantity
 ) {
+    public ItemQuantityData(Item item, BigDecimal quantity, BigDecimal ignoredYieldPercentage) {
+        this(item, quantity);
+    }
 }

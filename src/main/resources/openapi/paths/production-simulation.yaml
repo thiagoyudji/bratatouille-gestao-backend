@@ -1,4 +1,22 @@
 productionSimulation:
+  post:
+    tags:
+      - ProductionSimulation
+    operationId: simulateProductionFromInputs
+    summary: Simulate production from manually informed input quantities
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/production-simulation.yaml#/ProductionSimulationRequest'
+    responses:
+      '200':
+        description: Simulation result
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/production-simulation.yaml#/ProductionSimulationResponse'
   get:
     tags:
       - ProductionSimulation

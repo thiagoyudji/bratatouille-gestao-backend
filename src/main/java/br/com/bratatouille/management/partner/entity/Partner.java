@@ -1,5 +1,6 @@
 package br.com.bratatouille.management.partner.entity;
 
+import br.com.bratatouille.management.auth.entity.AuthUser;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -25,6 +26,14 @@ public class Partner {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(
+            name = "auth_user_id",
+            unique = true,
+            foreignKey = @ForeignKey(name = "fk_partners_auth_user")
+    )
+    private AuthUser authUser;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
@@ -90,5 +99,21 @@ public class Partner {
 
     public Set<PartnerRole> getRoles() {
         return roles;
+    }
+
+    public AuthUser getAuthUser() {
+        return authUser;
+    }
+
+    public void associateAuthUser(AuthUser authUser) {
+        if (this.authUser != null) {
+            throw new IllegalStateException("partner is already associated with a dashboard user");
+        }
+
+        if (authUser == null) {
+            throw new IllegalArgumentException("auth user is required");
+        }
+
+        this.authUser = authUser;
     }
 }

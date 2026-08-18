@@ -37,6 +37,24 @@ CreateItemRequest:
     pricePj:
       type: number
 
+UpdateItemRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+    lowStockThreshold:
+      type: number
+    criticalStockThreshold:
+      type: number
+    pricePf:
+      type: number
+    pricePj:
+      type: number
+    active:
+      type: boolean
+
 ItemResponse:
   type: object
   description: Item persistido com os preços de venda PF e PJ.

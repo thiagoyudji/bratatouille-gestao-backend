@@ -1,7 +1,6 @@
 PurchaseCreateRequest:
   type: object
   required:
-    - paidByPartnerId
     - purchaseDate
     - supplier
     - items
@@ -28,7 +27,6 @@ PurchaseCreateRequest:
 PurchaseItemRequest:
   type: object
   required:
-    - itemId
     - quantity
     - unit
     - totalValue
@@ -36,6 +34,8 @@ PurchaseItemRequest:
     itemId:
       type: integer
       format: int64
+    newItem:
+      $ref: '#/PurchaseNewItemRequest'
     quantity:
       type: number
     unit:
@@ -47,15 +47,37 @@ PurchaseItemRequest:
     totalValue:
       type: number
 
+PurchaseNewItemRequest:
+  type: object
+  required:
+    - name
+    - type
+    - baseUnit
+  properties:
+    name:
+      type: string
+    type:
+      type: string
+      enum: [INGREDIENT, PACKAGING, FINISHED_PRODUCT]
+    baseUnit:
+      type: string
+      enum: [G, ML, UN]
+    lowStockThreshold:
+      type: number
+    criticalStockThreshold:
+      type: number
+
 PurchaseSplitRequest:
   type: object
   required:
     - partnerId
-    - percentage
+    - amount
   properties:
     partnerId:
       type: integer
       format: int64
+    amount:
+      type: number
     percentage:
       type: number
 

@@ -1,3 +1,60 @@
+# Backend Project Instructions
+
+## Stack
+
+This is a Java/Spring Boot backend.
+
+Follow the architecture and conventions already present in the repository.
+
+Prefer:
+- existing project patterns
+- small cohesive changes
+- SOLID principles where useful
+- clear separation of responsibilities
+- explicit error handling
+- testable code
+
+Do not blindly introduce new architectural patterns.
+
+## Workflow
+
+For medium or large backend tasks:
+
+1. Explore the relevant controllers, services, repositories, entities and configuration.
+2. Understand existing conventions before implementing.
+3. Delegate independent analysis to subagents when useful.
+4. Implement the smallest coherent solution.
+5. Add or update tests.
+6. Run the project's test suite.
+7. Review the final diff.
+
+## Testing
+
+Use the testing stack already present in the repository.
+
+When appropriate, cover:
+- happy path
+- validation failures
+- edge cases
+- authorization/security behavior
+- persistence behavior
+- regressions
+
+## Database
+
+Do not make destructive schema changes without explicit approval.
+
+For migrations:
+- preserve backward compatibility when practical
+- inspect existing migration conventions first
+- do not modify historical migrations that may already have been applied
+
+## Security
+
+For authentication, authorization, sessions, JWT, credentials or user data:
+delegate a security-focused review before finalizing.
+
+
 # Bratatouille Backend — Agent Instructions
 
 ## 1. Papel e nível de interação

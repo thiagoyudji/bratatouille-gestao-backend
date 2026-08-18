@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.math.BigDecimal;
 
 @Service
 public class RecipeService {
@@ -45,6 +46,7 @@ public class RecipeService {
         Recipe recipe = Recipe.create(
                 request.getName(),
                 outputItem,
+                request.getYieldQuantity() == null ? BigDecimal.ONE : request.getYieldQuantity(),
                 itemsData
         );
 
@@ -81,6 +83,7 @@ public class RecipeService {
         recipe.update(
                 request.getName(),
                 outputItem,
+                request.getYieldQuantity() == null ? BigDecimal.ONE : request.getYieldQuantity(),
                 itemsData
         );
 
@@ -126,8 +129,7 @@ public class RecipeService {
 
                     return new ItemQuantityData(
                             item,
-                            itemRequest.getQuantity(),
-                            itemRequest.getYieldPercentage()
+                            itemRequest.getQuantity()
                     );
                 })
                 .toList();

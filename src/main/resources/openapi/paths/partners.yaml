@@ -53,3 +53,36 @@ partnerById:
           application/json:
             schema:
               $ref: '../schemas/partner.yaml#/PartnerResponse'
+
+associatePartnerUser:
+  put:
+    tags:
+      - Partners
+    operationId: associatePartnerUser
+    summary: Associate a partner with an admin dashboard user
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/partner.yaml#/AssociatePartnerUserRequest'
+    responses:
+      '200':
+        description: Partner associated with the dashboard user
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/partner.yaml#/PartnerResponse'
+      '400':
+        description: User is not an ADMIN
+      '404':
+        description: Partner or user not found
+      '409':
+        description: Partner or user is already associated

@@ -3,13 +3,16 @@ package br.com.bratatouille.management.purchase.service;
 import br.com.bratatouille.management.common.util.MoneyUtils;
 import br.com.bratatouille.management.generated.model.PurchaseCreateRequest;
 import br.com.bratatouille.management.generated.model.PurchaseItemRequest;
+import br.com.bratatouille.management.generated.model.PurchaseNewItemRequest;
 import br.com.bratatouille.management.generated.model.PurchaseResponse;
 import br.com.bratatouille.management.generated.model.PurchaseSplitRequest;
 import br.com.bratatouille.management.item.entity.Item;
+import br.com.bratatouille.management.item.entity.ItemType;
+import br.com.bratatouille.management.item.entity.UnitType;
 import br.com.bratatouille.management.item.repository.ItemRepository;
 import br.com.bratatouille.management.partner.entity.Partner;
 import br.com.bratatouille.management.partner.repository.PartnerRepository;
-import br.com.bratatouille.management.purchase.domain.PartnerPercentageData;
+import br.com.bratatouille.management.purchase.domain.PartnerAmountData;
 import br.com.bratatouille.management.purchase.domain.PurchaseItemData;
 import br.com.bratatouille.management.purchase.domain.PurchaseSplitCalculator;
 import br.com.bratatouille.management.purchase.domain.PurchaseSplitData;
@@ -52,8 +55,11 @@ public class PurchaseService {
     public PurchaseResponse create(PurchaseCreateRequest request) {
         validate(request);
 
-        Partner payer = partnerRepository.findById(request.getPaidByPartnerId())
-                .orElseThrow(() -> new NoSuchElementException("Partner not found"));
+        Partner payer = request.getPaidByPartnerId() == null
+                ? partnerRepository.findFirstByNameIgnoreCaseAndActiveTrue("Bratatouille")
+                    .orElseThrow(() -> new NoSuchElementException("Bratatouille partner not found"))
+                : partnerRepository.findById(request.getPaidByPartnerId())
+                    .orElseThrow(() -> new NoSuchElementException("Partner not found"));
 
         if (!Boolean.TRUE.equals(payer.getActive())) {
             throw new IllegalArgumentException("payer partner must be active");
@@ -107,38 +113,51 @@ public class PurchaseService {
         }
 
         if (request.getSplits() == null || request.getSplits().isEmpty()) {
-            List<Partner> activePartners = partnerRepository.findByActiveTrue();
-
-            return PurchaseSplitCalculator.calculateFromDefaultPercentages(
-                    totalAmount,
-                    activePartners
-            );
+            return List.of();
         }
 
-        List<PartnerPercentageData> customPercentages = request.getSplits()
+        List<PartnerAmountData> reimbursements = request.getSplits()
                 .stream()
-                .map(this::toPartnerPercentageData)
+                .map(split -> toPartnerAmountData(split, totalAmount))
                 .toList();
 
-        return PurchaseSplitCalculator.calculateFromCustomPercentages(
+        return PurchaseSplitCalculator.calculateFromAmounts(
                 totalAmount,
-                customPercentages
+                reimbursements
         );
     }
 
-    private PartnerPercentageData toPartnerPercentageData(PurchaseSplitRequest request) {
+    private PartnerAmountData toPartnerAmountData(PurchaseSplitRequest request, BigDecimal totalAmount) {
         Partner partner = partnerRepository.findById(request.getPartnerId())
                 .orElseThrow(() -> new NoSuchElementException("Partner not found"));
-
-        return new PartnerPercentageData(
-                partner,
-                request.getPercentage()
-        );
+        BigDecimal amount = request.getAmount();
+        if (amount == null && request.getPercentage() != null) {
+            amount = totalAmount.multiply(request.getPercentage())
+                    .divide(new BigDecimal("100"), 6, java.math.RoundingMode.HALF_UP);
+        }
+        return new PartnerAmountData(partner, amount);
     }
 
     private PurchaseItemData toItemData(PurchaseItemRequest request) {
-        Item item = itemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new NoSuchElementException("Item not found"));
+        Item item;
+        if (request.getItemId() != null) {
+            item = itemRepository.findById(request.getItemId())
+                    .orElseThrow(() -> new NoSuchElementException("Item not found"));
+        } else if (request.getNewItem() != null) {
+            PurchaseNewItemRequest newItem = request.getNewItem();
+            if (itemRepository.existsByNameIgnoreCase(newItem.getName())) {
+                throw new IllegalArgumentException("item name already exists");
+            }
+            item = itemRepository.save(new Item(
+                    newItem.getName(),
+                    ItemType.valueOf(newItem.getType().name()),
+                    UnitType.valueOf(newItem.getBaseUnit().name()),
+                    newItem.getLowStockThreshold(),
+                    newItem.getCriticalStockThreshold()
+            ));
+        } else {
+            throw new IllegalArgumentException("itemId or newItem is required");
+        }
 
         return new PurchaseItemData(
                 item,
@@ -157,10 +176,6 @@ public class PurchaseService {
     }
 
     private void validate(PurchaseCreateRequest request) {
-        if (request.getPaidByPartnerId() == null) {
-            throw new IllegalArgumentException("paidByPartnerId is required");
-        }
-
         if (request.getPurchaseDate() == null) {
             throw new IllegalArgumentException("purchaseDate is required");
         }

@@ -50,6 +50,8 @@ paths:
     $ref: './paths/partners.yaml#/partners'
   /api/partners/{id}:
     $ref: './paths/partners.yaml#/partnerById'
+  /api/partners/{id}/user:
+    $ref: './paths/partners.yaml#/associatePartnerUser'
 
   /api/items:
     $ref: './paths/items.yaml#/items'
@@ -163,6 +165,10 @@ components:
       $ref: './schemas/partner.yaml#/CreatePartnerRequest'
     PartnerResponse:
       $ref: './schemas/partner.yaml#/PartnerResponse'
+    AssociatePartnerUserRequest:
+      $ref: './schemas/partner.yaml#/AssociatePartnerUserRequest'
+    DashboardUserResponse:
+      $ref: './schemas/auth.yaml#/DashboardUserResponse'
 
     CreateItemRequest:
       $ref: './schemas/item.yaml#/CreateItemRequest'

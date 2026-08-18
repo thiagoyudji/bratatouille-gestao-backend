@@ -111,17 +111,15 @@ public class Item {
 
     public void update(
             String name,
-            ItemType type,
             BigDecimal lowStockThreshold,
             BigDecimal criticalStockThreshold,
             Boolean active
     ) {
-        update(name, type, lowStockThreshold, criticalStockThreshold, active, null, null);
+        update(name, lowStockThreshold, criticalStockThreshold, active, null, null);
     }
 
     public void update(
             String name,
-            ItemType type,
             BigDecimal lowStockThreshold,
             BigDecimal criticalStockThreshold,
             Boolean active,
@@ -135,12 +133,7 @@ public class Item {
             throw new IllegalArgumentException("name is required");
         }
 
-        if (type == null) {
-            throw new IllegalArgumentException("type is required");
-        }
-
         this.name = name;
-        this.type = type;
         this.lowStockThreshold = lowStockThreshold;
         this.criticalStockThreshold = criticalStockThreshold;
         this.pricePf = normalizeMoney(pricePf);
@@ -149,6 +142,12 @@ public class Item {
         if (active != null) {
             this.active = active;
         }
+    }
+
+    @Deprecated
+    public void update(String name, ItemType ignoredType, BigDecimal lowStockThreshold,
+                       BigDecimal criticalStockThreshold, Boolean active) {
+        update(name, lowStockThreshold, criticalStockThreshold, active, pricePf, pricePj);
     }
 
     private void validatePrices(BigDecimal pricePf, BigDecimal pricePj) {

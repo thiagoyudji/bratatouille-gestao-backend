@@ -2,6 +2,7 @@ package br.com.bratatouille.management.productionSimulation.controller;
 
 import br.com.bratatouille.management.generated.api.ProductionSimulationApiDelegate;
 import br.com.bratatouille.management.generated.model.ProductionSimulationResponse;
+import br.com.bratatouille.management.generated.model.ProductionSimulationRequest;
 import br.com.bratatouille.management.productionSimulation.service.ProductionSimulationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -20,5 +21,10 @@ public class ProductionSimulationApiDelegateImpl implements ProductionSimulation
     @Override
     public ResponseEntity<ProductionSimulationResponse> simulateProduction(Long recipeId, BigDecimal quantity) {
         return ResponseEntity.ok(productionSimulationService.simulate(recipeId, quantity));
+    }
+
+    @Override
+    public ResponseEntity<ProductionSimulationResponse> simulateProductionFromInputs(ProductionSimulationRequest request) {
+        return ResponseEntity.ok(productionSimulationService.simulateFromInputs(request));
     }
 }
