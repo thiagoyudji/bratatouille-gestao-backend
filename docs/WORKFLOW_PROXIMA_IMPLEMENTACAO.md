@@ -1,48 +1,82 @@
-# Workflow prioritário — Estoque fake, produção e pedidos
+# Workflow futuro — Estoque fake, pedidos e produção
 
-Documento de execução para a próxima sessão de código. As regras estão em `docs/REGRAS_NEGOCIO_CADASTROS_E_COMPRAS.md`.
+Documento de planejamento. Nenhum item abaixo deve ser implementado sem revisão do contrato OpenAPI, migrations e consumidores dos três repositórios.
 
-## Fase 1 — Backend: Estoque fake
+## Decisões fechadas
 
-1. Revisar OpenAPI, entidades, service, repository e fluxo atual de `SellableStock`.
-2. Separar `active`, `infinite`, `outOfStock` e quantidade fake finita.
-3. Restringir escrita administrativa a `ADMIN`.
-4. Garantir que o e-commerce distinga item oculto, visível fora de estoque, infinito e finito.
-5. Adicionar testes para as transições dessas flags.
+- O Estoque fake possui somente `active` e `infinite`.
+- `active=false` remove o produto do catálogo; `active=true` mantém a publicação.
+- `infinite=true` permite venda; `infinite=false` mantém o produto visível, mas fora de estoque.
+- O catálogo público recebe apenas fake stock e dados comerciais. Estoque físico é exclusivo do dashboard.
+- O pedido não é bloqueado por falta de produto ou insumo.
+- A baixa física é uma ação manual, idempotente e exclusiva de `ADMIN`.
+- A baixa retira somente a quantidade física disponível e registra o restante como falta.
+- A falta não altera o status visual do cliente.
+- Pedido PF pode aguardar confirmação da InfinitePay; pedido PJ pode seguir por crédito/boleto de prazo longo.
+- Pedido cancelado, recusado ou expirado antes da baixa não consome estoque.
+- Alteração de pedido exige confirmação, motivo, recálculo do valor e log antes/depois.
+- Depois da baixa física, a edição comum do pedido é bloqueada.
+- A baixa considera somente produtos finais adquiridos e publicados no Estoque fake.
 
-## Fase 2 — Backend: confirmação do pedido
+## Fase 1 — Contrato e agregado de Estoque fake
 
-1. Ao confirmar o pedido pelo `ADMIN`, reduzir a oferta fake.
-2. Baixar o estoque físico somente nessa confirmação.
-3. Se faltar produto físico, marcar o pedido como `EM_PRODUCAO`.
-4. Impedir envio enquanto houver produção pendente.
-5. Garantir transação, concorrência e idempotência.
+1. Remover do contrato e do domínio `availableQuantity` e `outOfStock`.
+2. Renomear `enabled` para `active` de forma coordenada ou definir estratégia de compatibilidade.
+3. Separar resposta pública de catálogo e resposta administrativa com estoque físico.
+4. Garantir autorização `ADMIN` para escrita administrativa.
+5. Atualizar dashboard e e-commerce, tipos gerados, testes e documentação.
 
-## Fase 3 — Backend: pré-produção e compras
+## Fase 2 — Pedido e saída física
 
-1. Criar caso de uso que receba manualmente `X` unidades de produto final.
-2. Calcular proporcionalmente os insumos da `Recipe` ativa.
-3. Comparar necessidade com estoque e apontar faltas.
-4. Estimar custos diretos com rastreabilidade das compras e custo médio para projeção.
-5. Incluir gás por produção e luz/aluguel como despesas mensais do período.
-6. Deixar rendimento/perdas por peso e planejamento de compras como evolução posterior.
+1. Criar caso de uso administrativo “Confirmar saída do estoque”.
+2. Registrar uma única saída por pedido, com usuário, timestamp e itens.
+3. Para cada item, calcular solicitado, baixado e faltante.
+4. Baixar apenas a quantidade existente no estoque físico.
+5. Não alterar o status público por falta.
+6. Criar resposta administrativa com faltas agrupadas por produto final.
+7. Garantir transação, lock pessimista, idempotência e movimento de estoque auditável.
 
-## Fase 4 — Dashboard de gestão
+## Fase 3 — Faltas, receita e compra estimada
 
-1. Criar aba “Estoque fake”, exclusiva de `ADMIN`, separada de Vendas.
-2. Exibir ativo/inativo, infinito/finito e disponível/fora de estoque com semântica distinta.
-3. Exibir déficit e status `EM_PRODUCAO`.
-4. Criar tela de pré-produção para X unidades com insumos, faltas e custos.
-5. Integrar abertura/fechamento mensal e despesas de luz/aluguel.
+1. Para cada produto final faltante, localizar a única `Recipe` ativa.
+2. Se não houver receita, registrar aviso “receita não cadastrada” sem bloquear a baixa física.
+3. Calcular insumos líquidos pela regra de quantidade e rendimento.
+4. Comparar necessidade com estoque de insumos comprado.
+5. Mostrar insumos disponíveis, faltantes, quantidade estimada de compra e custo estimado.
+6. Usar custo médio ponderado na projeção, preservando preços reais de cada compra.
+7. Incluir gás por produção e luz/aluguel como despesas mensais do fechamento.
+8. Não criar produção automaticamente.
 
-## Fase 5 — E-commerce normal
+## Fase 4 — Alteração e auditoria de pedidos
 
-1. Revisar serviços, tipos gerados, catálogo, carrinho e checkout.
-2. Corrigir leitura dos estados de publicação e fora de estoque.
-3. Garantir PF/PJ no preço retornado pelo backend.
-4. Revisar produtos aguardando produção e indisponibilidade.
-5. Implementar após fechar o contrato do backend.
+1. Permitir edição somente antes da saída física.
+2. Exigir confirmação visual e motivo.
+3. Recalcular automaticamente totais e margens.
+4. Registrar log append-only com usuário, data, motivo, estado anterior e posterior.
+5. Após saída física, direcionar qualquer correção para operação de ajuste específica.
 
-## Ordem de execução
+## Fase 5 — Dashboard de gestão
 
-Começar pelo inventário do fluxo atual de `SellableStock` e pedido no backend. A primeira fatia vertical será: flags do Estoque fake, confirmação administrativa do pedido e testes. Depois seguir para pré-produção e planejamento de compras.
+1. Criar aba “Estoque fake”, exclusiva de `ADMIN`.
+2. Exibir `active`, `infinite`, produtos fora de estoque, estoque físico e saída pendente.
+3. Exibir botão “Confirmar saída do estoque”.
+4. Exibir faltas por produto final, receitas, insumos e compra estimada.
+5. Exibir logs e motivos de alterações.
+6. Integrar despesas de luz/aluguel aos períodos de abertura e fechamento.
+
+## Fase 6 — E-commerce
+
+1. Consumir somente catálogo fake e preços autorizados pelo backend.
+2. Ocultar produtos inativos.
+3. Exibir produtos ativos e não infinitos como fora de estoque.
+4. Não exibir estoque físico, faltas internas, custo ou produção necessária.
+5. Priorizar conversão: CTA claro, checkout curto, confiança, recompra e comunicação comercial.
+6. Remover a criação direta de pagamento do navegador e usar o fluxo oficial do backend.
+
+## Questões técnicas para a sessão de implementação
+
+- Nome definitivo do novo campo `active` e compatibilidade temporária com `enabled`.
+- Nome e contrato da resposta administrativa de saída física.
+- Política para item sem receita: aviso persistido ou apenas resposta da operação.
+- Modelo de log: tabela própria ou evento/auditoria dentro do agregado do pedido.
+- Critério exato de rateio do gás por produção.

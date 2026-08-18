@@ -12,7 +12,7 @@ sellableStocks:
             schema:
               type: array
               items:
-                $ref: '../schemas/sellable-stock.yaml#/SellableStockResponse'
+                $ref: '../schemas/sellable-stock.yaml#/SellableStockCatalogResponse'
 
 sellableStockByItemId:
   get:
@@ -33,7 +33,44 @@ sellableStockByItemId:
         content:
           application/json:
             schema:
-              $ref: '../schemas/sellable-stock.yaml#/SellableStockResponse'
+              $ref: '../schemas/sellable-stock.yaml#/SellableStockCatalogResponse'
+
+sellableStockAdmin:
+  get:
+    tags:
+      - SellableStocks
+    operationId: findAllSellableStockAdmin
+    summary: List sellable stocks for management
+    responses:
+      '200':
+        description: Sellable stocks found
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/sellable-stock.yaml#/SellableStockAdminResponse'
+
+sellableStockAdminByItemId:
+  get:
+    tags:
+      - SellableStocks
+    operationId: findSellableStockAdminByItemId
+    summary: Find sellable stock for management
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      '200':
+        description: Sellable stock found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/sellable-stock.yaml#/SellableStockAdminResponse'
 
   put:
     tags:
@@ -52,11 +89,11 @@ sellableStockByItemId:
       content:
         application/json:
           schema:
-            $ref: '../schemas/sellable-stock.yaml#/SellableStockUpsertRequest'
+              $ref: '../schemas/sellable-stock.yaml#/SellableStockUpsertRequest'
     responses:
       '200':
         description: Sellable stock updated
         content:
           application/json:
             schema:
-              $ref: '../schemas/sellable-stock.yaml#/SellableStockResponse'
+              $ref: '../schemas/sellable-stock.yaml#/SellableStockAdminResponse'

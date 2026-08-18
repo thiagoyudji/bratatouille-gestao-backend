@@ -124,9 +124,8 @@ public class TestDatabaseSeeder {
             Item item = require(items, seed.item(), "item");
             sellableStocks.put(seed.key(), sellableStockRepository.save(SellableStock.create(
                     item,
-                    seed.availableQuantity(),
                     seed.infinite(),
-                    seed.enabled(),
+                    seed.active(),
                     seed.pricePf(),
                     seed.pricePj()
             )));
@@ -259,9 +258,8 @@ public class TestDatabaseSeeder {
     public record SellableStockSeed(
             String key,
             String item,
-            BigDecimal availableQuantity,
             Boolean infinite,
-            Boolean enabled,
+            Boolean active,
             BigDecimal pricePf,
             BigDecimal pricePj
     ) {

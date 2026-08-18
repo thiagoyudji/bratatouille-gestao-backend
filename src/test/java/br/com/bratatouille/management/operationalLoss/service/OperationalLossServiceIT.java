@@ -166,9 +166,8 @@ class OperationalLossServiceIT {
         seedProduction(cake, flour);
 
         SellableStockUpsertRequest sellableStockRequest = new SellableStockUpsertRequest();
-        sellableStockRequest.setAvailableQuantity(new BigDecimal("5.000"));
         sellableStockRequest.setInfinite(false);
-        sellableStockRequest.setEnabled(true);
+        sellableStockRequest.setActive(true);
         sellableStockService.upsert(cake.getId(), sellableStockRequest);
 
         doAnswer(invocation -> {
@@ -187,7 +186,6 @@ class OperationalLossServiceIT {
 
         assertEquals(initialLossCount, operationalLossRepository.count());
         assertTrue(stockRepository.findByItemId(cake.getId()).orElseThrow().getQuantity().compareTo(new BigDecimal("2.000")) == 0);
-        assertTrue(sellableStockRepository.findByItemId(cake.getId()).orElseThrow().getAvailableQuantity().compareTo(new BigDecimal("5.000")) == 0);
         assertTrue(stockRepository.findByItemId(flour.getId()).orElseThrow().getQuantity().compareTo(new BigDecimal("6.000")) == 0);
         assertEquals(1, productionRepository.count());
     }

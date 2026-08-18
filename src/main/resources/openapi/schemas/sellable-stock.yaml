@@ -2,16 +2,14 @@ SellableStockUpsertRequest:
   type: object
   required:
     - infinite
-    - enabled
+    - active
   properties:
-    availableQuantity:
-      type: number
     infinite:
       type: boolean
-    enabled:
+    active:
       type: boolean
 
-SellableStockResponse:
+SellableStockCatalogResponse:
   type: object
   properties:
     itemId:
@@ -19,8 +17,23 @@ SellableStockResponse:
       format: int64
     itemName:
       type: string
-    availableQuantity:
+    pricePf:
       type: number
+    pricePj:
+      type: number
+    infinite:
+      type: boolean
+    active:
+      type: boolean
+
+SellableStockAdminResponse:
+  type: object
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    itemName:
+      type: string
     currentStockQuantity:
       type: number
     pricePf:
@@ -29,5 +42,5 @@ SellableStockResponse:
       type: number
     infinite:
       type: boolean
-    enabled:
+    active:
       type: boolean

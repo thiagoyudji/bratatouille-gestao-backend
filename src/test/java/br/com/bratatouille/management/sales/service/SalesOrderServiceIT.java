@@ -65,9 +65,8 @@ class SalesOrderServiceIT {
         ));
 
         SellableStockUpsertRequest sellableStockRequest = new SellableStockUpsertRequest();
-        sellableStockRequest.setAvailableQuantity(new BigDecimal("10.000"));
-        sellableStockRequest.setInfinite(false);
-        sellableStockRequest.setEnabled(true);
+        sellableStockRequest.setInfinite(true);
+        sellableStockRequest.setActive(true);
         sellableStockService.upsert(pizza.getId(), sellableStockRequest);
 
         SalesOrderCreateRequest request = new SalesOrderCreateRequest();
@@ -91,7 +90,6 @@ class SalesOrderServiceIT {
         assertEquals(Boolean.TRUE, response.getItems().get(0).getCostIncomplete());
 
         SellableStock sellableStock = sellableStockRepository.findByItemId(pizza.getId()).orElseThrow();
-        assertEquals(new BigDecimal("8.000"), sellableStock.getAvailableQuantity());
 
         assertEquals(initialSalesOrderCount + 1, salesOrderRepository.count());
         assertEquals(pizza.getId(), response.getItems().get(0).getItemId());
@@ -110,9 +108,8 @@ class SalesOrderServiceIT {
         ));
 
         SellableStockUpsertRequest sellableStockRequest = new SellableStockUpsertRequest();
-        sellableStockRequest.setAvailableQuantity(new BigDecimal("10.000"));
-        sellableStockRequest.setInfinite(false);
-        sellableStockRequest.setEnabled(true);
+        sellableStockRequest.setInfinite(true);
+        sellableStockRequest.setActive(true);
         sellableStockService.upsert(pizza.getId(), sellableStockRequest);
 
         SalesOrderCreateRequest guestRequest = new SalesOrderCreateRequest();
@@ -154,9 +151,8 @@ class SalesOrderServiceIT {
         ));
 
         SellableStockUpsertRequest sellableStockRequest = new SellableStockUpsertRequest();
-        sellableStockRequest.setAvailableQuantity(new BigDecimal("10.000"));
-        sellableStockRequest.setInfinite(false);
-        sellableStockRequest.setEnabled(true);
+        sellableStockRequest.setInfinite(true);
+        sellableStockRequest.setActive(true);
         sellableStockService.upsert(pizza.getId(), sellableStockRequest);
 
         SalesOrderCreateRequest request = new SalesOrderCreateRequest();
@@ -189,9 +185,8 @@ class SalesOrderServiceIT {
         ));
 
         SellableStockUpsertRequest sellableStockRequest = new SellableStockUpsertRequest();
-        sellableStockRequest.setAvailableQuantity(new BigDecimal("10.000"));
-        sellableStockRequest.setInfinite(false);
-        sellableStockRequest.setEnabled(true);
+        sellableStockRequest.setInfinite(true);
+        sellableStockRequest.setActive(true);
         sellableStockService.upsert(pizza.getId(), sellableStockRequest);
 
         SalesOrderCreateRequest request = new SalesOrderCreateRequest();
@@ -237,9 +232,8 @@ class SalesOrderServiceIT {
         ));
 
         SellableStockUpsertRequest sellableStockRequest = new SellableStockUpsertRequest();
-        sellableStockRequest.setAvailableQuantity(new BigDecimal("10.000"));
-        sellableStockRequest.setInfinite(false);
-        sellableStockRequest.setEnabled(true);
+        sellableStockRequest.setInfinite(true);
+        sellableStockRequest.setActive(true);
         sellableStockService.upsert(pizza.getId(), sellableStockRequest);
 
         SalesOrderCreateRequest request = new SalesOrderCreateRequest();
@@ -260,7 +254,6 @@ class SalesOrderServiceIT {
         org.junit.jupiter.api.Assertions.assertThrows(NoSuchElementException.class, () -> salesOrderService.create(request));
 
         assertEquals(initialSalesOrderCount, salesOrderRepository.count());
-        assertEquals(new BigDecimal("10.000"), sellableStockRepository.findByItemId(pizza.getId()).orElseThrow().getAvailableQuantity());
         assertTrue(sellableStockRepository.findByItemId(burger.getId()).isEmpty());
     }
 

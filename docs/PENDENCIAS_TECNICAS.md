@@ -99,3 +99,15 @@ Direção desejada:
 - a previsão não deve criar ordem de produção automaticamente até que essa transição seja decidida.
 
 Revisar também concorrência, reservas, arredondamento/lote mínimo e comportamento de venda sem estoque. Detalhamento das regras e decisões abertas: `docs/REGRAS_NEGOCIO_CADASTROS_E_COMPRAS.md`.
+
+### Consolidação final da regra
+
+O desenho aprovado substitui as referências anteriores a quantidade fake finita, `outOfStock`, redução da oferta fake e status público `EM_PRODUCAO`:
+
+- o modelo fake terá somente `active` e `infinite`;
+- a baixa será uma ação manual, única e idempotente do `ADMIN` sobre o estoque físico;
+- a baixa poderá ser parcial e registrará faltas por produto final;
+- faltas, receitas, insumos e compra estimada aparecem somente no dashboard;
+- não haverá bloqueio do pedido nem mudança do status visual do cliente por falta de estoque;
+- edição após a baixa física será bloqueada e exigirá ajuste específico;
+- alterações terão motivo e log antes/depois.

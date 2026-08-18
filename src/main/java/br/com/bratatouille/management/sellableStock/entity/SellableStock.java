@@ -21,14 +21,11 @@ public class SellableStock {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    @Column(nullable = false, precision = 19, scale = 3)
-    private BigDecimal availableQuantity;
-
     @Column(nullable = false)
     private Boolean infinite;
 
     @Column(nullable = false)
-    private Boolean enabled;
+    private Boolean active;
 
     @Column(precision = 19, scale = 6)
     private BigDecimal pricePf;
@@ -41,58 +38,53 @@ public class SellableStock {
 
     private SellableStock(
             Item item,
-            BigDecimal availableQuantity,
             Boolean infinite,
-            Boolean enabled,
+            Boolean active,
             BigDecimal pricePf,
             BigDecimal pricePj
     ) {
-        validate(item, availableQuantity, infinite, enabled);
+        validate(item, infinite, active);
 
         this.item = item;
-        this.availableQuantity = normalizeQuantity(availableQuantity);
         this.infinite = infinite;
-        this.enabled = enabled;
+        this.active = active;
         this.pricePf = normalizeMoney(pricePf);
         this.pricePj = normalizeMoney(pricePj);
     }
 
-    public static SellableStock create(Item item, BigDecimal availableQuantity, Boolean infinite, Boolean enabled) {
-        return new SellableStock(item, availableQuantity, infinite, enabled, null, null);
+    public static SellableStock create(Item item, Boolean infinite, Boolean active) {
+        return new SellableStock(item, infinite, active, null, null);
     }
 
     public static SellableStock create(
             Item item,
-            BigDecimal availableQuantity,
             Boolean infinite,
-            Boolean enabled,
+            Boolean active,
             BigDecimal pricePf,
             BigDecimal pricePj
     ) {
-        return new SellableStock(item, availableQuantity, infinite, enabled, pricePf, pricePj);
+        return new SellableStock(item, infinite, active, pricePf, pricePj);
     }
 
-    public void update(BigDecimal availableQuantity, Boolean infinite, Boolean enabled) {
-        update(availableQuantity, infinite, enabled, null, null);
+    public void update(Boolean infinite, Boolean active) {
+        update(infinite, active, null, null);
     }
 
     public void update(
-            BigDecimal availableQuantity,
             Boolean infinite,
-            Boolean enabled,
+            Boolean active,
             BigDecimal pricePf,
             BigDecimal pricePj
     ) {
-        validate(this.item, availableQuantity, infinite, enabled);
+        validate(this.item, infinite, active);
 
-        this.availableQuantity = normalizeQuantity(availableQuantity);
         this.infinite = infinite;
-        this.enabled = enabled;
+        this.active = active;
         this.pricePf = normalizeMoney(pricePf);
         this.pricePj = normalizeMoney(pricePj);
     }
 
-    private static void validate(Item item, BigDecimal availableQuantity, Boolean infinite, Boolean enabled) {
+    private static void validate(Item item, Boolean infinite, Boolean active) {
         if (item == null) {
             throw new IllegalArgumentException("item is required");
         }
@@ -101,45 +93,13 @@ public class SellableStock {
             throw new IllegalArgumentException("infinite is required");
         }
 
-        if (enabled == null) {
-            throw new IllegalArgumentException("enabled is required");
+        if (active == null) {
+            throw new IllegalArgumentException("active is required");
         }
-
-        if (!infinite && (availableQuantity == null || availableQuantity.compareTo(BigDecimal.ZERO) < 0)) {
-            throw new IllegalArgumentException("availableQuantity cannot be negative");
-        }
-    }
-
-    private static BigDecimal normalizeQuantity(BigDecimal availableQuantity) {
-        return availableQuantity == null ? BigDecimal.ZERO : availableQuantity;
     }
 
     private static BigDecimal normalizeMoney(BigDecimal value) {
         return value == null ? null : MoneyUtils.normalize(value);
-    }
-
-    public void decrease(BigDecimal quantity) {
-        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("quantity must be greater than zero");
-        }
-
-        if (Boolean.TRUE.equals(this.infinite)) {
-            return;
-        }
-
-        this.availableQuantity = this.availableQuantity.subtract(quantity);
-    }
-
-    public void increase(BigDecimal quantity) {
-        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("quantity must be greater than zero");
-        }
-
-        if (Boolean.TRUE.equals(this.infinite)) {
-            return;
-        }
-
-        this.availableQuantity = this.availableQuantity.add(quantity);
     }
 
     public Long getId() {
@@ -150,17 +110,14 @@ public class SellableStock {
         return item;
     }
 
-    public BigDecimal getAvailableQuantity() {
-        return availableQuantity;
-    }
-
     public Boolean getInfinite() {
         return infinite;
     }
 
-    public Boolean getEnabled() {
-        return enabled;
+    public Boolean getActive() {
+        return active;
     }
+
 
     public BigDecimal getPricePf() {
         return pricePf;

@@ -68,9 +68,8 @@ class SalesReportServiceIT {
         ));
 
         SellableStockUpsertRequest sellableStockRequest = new SellableStockUpsertRequest();
-        sellableStockRequest.setAvailableQuantity(new BigDecimal("10.000"));
-        sellableStockRequest.setInfinite(false);
-        sellableStockRequest.setEnabled(true);
+        sellableStockRequest.setInfinite(true);
+        sellableStockRequest.setActive(true);
         sellableStockService.upsert(pizza.getId(), sellableStockRequest);
 
         approve(salesOrderService.create(order(startDate.plusDays(1), SalesOrderCustomerType.PF, pizza.getId())));

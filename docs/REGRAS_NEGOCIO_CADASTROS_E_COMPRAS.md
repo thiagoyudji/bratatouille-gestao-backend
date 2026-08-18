@@ -73,17 +73,16 @@ Essa restrição não deve ser considerada proteção suficiente no backend. Se 
 
 - O cadastro do estoque/oferta que será exposto no e-commerce deve ficar em uma aba acessível somente a `ADMIN`.
 - “Estoque fake” é o nome da aba e da funcionalidade no dashboard. O conceito técnico existente no backend é `SellableStock`.
-- Esse cadastro deve definir quais itens entram no site, disponibilidade/quantidade virtual e preços PF/PJ do produto vendável.
-- A quantidade do Estoque fake pode ser maior que o estoque físico atual. Ela representa uma oferta/projeção comercial e não deve ser apresentada como saldo físico confirmado.
-- O objetivo do Estoque fake é ampliar a capacidade comercial e permitir vender além do saldo físico atual, calculando o que pode ser atendido imediatamente e o que exigirá produção.
+- Esse cadastro deve definir quais itens entram no site, disponibilidade virtual e preços PF/PJ do produto vendável.
+- O Estoque fake não possui quantidade finita. `infinite=true` significa que o produto pode ser vendido; `infinite=false` significa que aparece fora de estoque.
+- O objetivo do Estoque fake é ampliar a capacidade comercial; ele não representa saldo físico.
 - Nenhuma baixa do estoque físico deve ocorrer antes da confirmação administrativa do pedido. Na confirmação, o sistema deve calcular o consumo do estoque existente e a necessidade de produção do excedente.
-- Ao confirmar administrativamente um pedido, a quantidade correspondente deve ser retirada da oferta do Estoque fake. Se o estoque físico não cobrir toda a quantidade, o pedido deve assumir status “em produção” para a parcela faltante, sem permitir envio antes da conclusão.
+- O pedido aceito pelo Estoque fake não reduz essa oferta. Enquanto `infinite=true`, ele continua vendável; a redução é uma operação separada sobre o estoque físico.
 - A leitura necessária ao e-commerce pode permanecer pública ou autenticada conforme o contrato externo; a escrita administrativa deve exigir `ADMIN`.
 - Para produto final, os preços PF e PJ são relevantes nesse cadastro. A política de preço continua sob autoridade do backend.
-- A oferta pode ser configurada como infinita (`infinite=true`), representando disponibilidade comercial sem limite numérico físico.
 - A flag `active` controla a publicação: quando inativa, a oferta não deve aparecer no e-commerce.
-- A flag de fora de estoque controla a compra: quando fora de estoque, a oferta continua aparecendo, mas deve ser exibida como indisponível e não pode ser comprada.
-- Desativar a condição infinita não deve necessariamente ocultar o produto: a oferta pode passar a trabalhar com quantidade finita ou ficar fora de estoque, conforme a operação administrativa.
+- A flag `infinite` controla a disponibilidade comercial: quando falsa, a oferta continua aparecendo, mas fica fora de estoque e não pode ser comprada.
+- O catálogo público deve receber somente o estado fake e os dados comerciais; estoque físico nunca é exposto.
 
 ### Escopo de receita
 
@@ -94,12 +93,13 @@ Essa restrição não deve ser considerada proteção suficiente no backend. Se 
 
 - A aba Estoque fake deve permitir vincular a oferta vendável ao estoque físico original.
 - Estoque fake deve ser tratado como quantidade virtual/ofertada, não como segundo saldo físico. A venda precisa deixar explícito se será atendida pelo estoque físico disponível ou por produção necessária.
-- Quando a quantidade fake for maior que a quantidade física disponível, o sistema deve calcular a diferença que precisa ser produzida. A baixa do estoque físico ocorre somente após o `ADMIN` confirmar o pedido; a parte excedente deve gerar necessidade de produção e não pode ser expedida antes da produção.
+- Quando o `ADMIN` acionar “Confirmar saída do estoque”, o sistema baixa somente a quantidade física disponível e registra a falta restante por produto final. A falta não bloqueia o pedido nem altera o status visual do cliente.
+- A ação de baixa física é idempotente e executável uma única vez por pedido, registrando usuário, data, itens baixados e quantidades faltantes.
 - Para uma quantidade virtual de produto final ou `X` pedidos, o sistema deve apresentar a necessidade estimada de cada insumo com base na `Recipe` ativa do produto.
 - A estimativa deve incluir o custo previsto dos insumos necessários para produzir a diferença entre a oferta fake e o estoque físico aproveitável, sem confundir esse custo estimado com custo já realizado.
 - O custo estimado dos insumos deve usar custo médio ponderado. A compra, entretanto, deve preservar o preço efetivamente pago naquela aquisição para histórico e prestação de contas.
 - O cálculo deve respeitar a regra já usada na produção: `usableQuantity = recipeItem.quantity * producedQuantity` e `consumedQuantity = usableQuantity / yieldPercentage`. O resultado deve ser comparado ao estoque físico e mostrar eventuais déficits por insumo.
-- A previsão deve deixar visíveis, separadamente, quantidade fake ofertada, estoque físico aproveitável, quantidade comprometida/reservada, déficit de produto final, necessidade de produção, necessidade de cada insumo e custo estimado. Não deve criar uma produção automaticamente sem decisão explícita.
+- A previsão deve deixar visíveis estoque físico aproveitável, déficit por produto final, necessidade de produção, estoque de insumos, déficit de insumos, quantidade de compra e custo estimado. Não deve criar produção automaticamente.
 - O relatório de pré-produção deve detalhar a regra de proporção da receita, os insumos disponíveis, os insumos faltantes, o custo de cada insumo e os custos indiretos rateados da produção.
 - A produção só pode ser confirmada quando houver quantidade suficiente de todos os insumos necessários; a pré-produção pode apenas simular e apontar déficits.
 - O custo indireto estimado deve considerar gás por produção e rateio mensal de luz e aluguel, com critérios de rateio explícitos e auditáveis.
@@ -117,10 +117,25 @@ Essa restrição não deve ser considerada proteção suficiente no backend. Se 
 - Deve existir futuramente uma aba de planejamento de compras em que o usuário informe uma quantidade de produto final e receba a quantidade necessária de cada insumo bruto, o estoque disponível, o déficit de compra e o custo estimado.
 - O planejamento deve considerar receitas, rendimento médio, estoque comprometido por pedidos “em produção”, estoque disponível e embalagem necessária, permitindo comprar o mais próximo possível da necessidade real.
 
+## Pedido, baixa física e auditoria
+
+- Pedido PF pode aguardar pagamento da InfinitePay; pedido PJ pode seguir por condição de crédito/boleto de prazo longo, sem pagamento imediato.
+- Pedido recusado, cancelado ou expirado antes da baixa física não consome estoque e deve ser apenas cancelado.
+- A alteração de pedido exige confirmação explícita do `ADMIN`, recalcula automaticamente o valor e exige motivo.
+- Toda alteração deve gerar log administrativo com usuário, data, motivo, estado anterior e estado posterior, incluindo itens adicionados, removidos ou alterados.
+- A baixa inicial considera somente produtos finais adquiridos e publicados no Estoque fake. Ingredientes e embalagens são controlados pelo fluxo de produção.
+- O pedido não recebe status público “em produção”; faltas são informação operacional exclusiva do dashboard.
+- A baixa registra a quantidade retirada e a quantidade não atendida, sem permitir duplicidade.
+
+### Crédito de cliente PJ
+
+- Cliente PJ associado a parceiro pode comprar sem pagamento imediato.
+- A condição deve ser representada separadamente do pagamento instantâneo, com método/condição, vencimento e status próprios.
+- A integração de boleto/crédito PJ está documentada, mas não faz parte da primeira implementação.
+
 ### Decisões técnicas ainda abertas
 
-- Definir se a quantidade fake exibida funciona como limite comercial recorrente ou se é reposta manualmente após cada confirmação de pedido.
-- O planejamento de produção/compras usa somente a quantidade `X` informada manualmente pelo usuário; não deve incorporar pedidos ou o saldo fake automaticamente.
+- O planejamento de produção/compras usa somente a quantidade `X` informada manualmente pelo usuário; não incorpora pedidos nem saldo fake automaticamente.
 - Como tratar arredondamento, lote mínimo e quantidade fracionária de receita?
 - Deve existir somente uma `Recipe` ativa por produto final; falta definir a modelagem de vigência/histórico das receitas antigas.
 - Gás é custo da produção; luz e aluguel são despesas mensais e devem entrar no período entre abertura e fechamento mensal.

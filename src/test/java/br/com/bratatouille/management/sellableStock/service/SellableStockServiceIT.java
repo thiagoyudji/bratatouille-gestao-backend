@@ -1,6 +1,6 @@
 package br.com.bratatouille.management.sellableStock.service;
 
-import br.com.bratatouille.management.generated.model.SellableStockResponse;
+import br.com.bratatouille.management.generated.model.SellableStockAdminResponse;
 import br.com.bratatouille.management.generated.model.SellableStockUpsertRequest;
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.entity.ItemType;
@@ -40,34 +40,29 @@ class SellableStockServiceIT {
         Item pizza = saveItem("Pizza", ItemType.FINISHED_PRODUCT);
 
         SellableStockUpsertRequest createRequest = new SellableStockUpsertRequest();
-        createRequest.setAvailableQuantity(new BigDecimal("12.000"));
-        createRequest.setInfinite(false);
-        createRequest.setEnabled(true);
+        createRequest.setInfinite(true);
+        createRequest.setActive(true);
 
-        SellableStockResponse created = sellableStockService.upsert(pizza.getId(), createRequest);
+        SellableStockAdminResponse created = sellableStockService.upsert(pizza.getId(), createRequest);
 
         assertEquals(pizza.getId(), created.getItemId());
         assertEquals("Pizza", created.getItemName());
-        assertEquals(0, new BigDecimal("12.000").compareTo(created.getAvailableQuantity()));
-        assertEquals(0, new BigDecimal("0.000").compareTo(created.getCurrentStockQuantity()));
         assertEquals(new BigDecimal("18.50"), created.getPricePf());
         assertEquals(new BigDecimal("24.90"), created.getPricePj());
-        assertEquals(Boolean.FALSE, created.getInfinite());
-        assertEquals(Boolean.TRUE, created.getEnabled());
+        assertEquals(Boolean.TRUE, created.getInfinite());
+        assertEquals(Boolean.TRUE, created.getActive());
 
         SellableStockUpsertRequest updateRequest = new SellableStockUpsertRequest();
-        updateRequest.setAvailableQuantity(new BigDecimal("7.500"));
         updateRequest.setInfinite(true);
-        updateRequest.setEnabled(false);
+        updateRequest.setActive(false);
 
-        SellableStockResponse updated = sellableStockService.upsert(pizza.getId(), updateRequest);
+        SellableStockAdminResponse updated = sellableStockService.upsert(pizza.getId(), updateRequest);
 
         assertEquals(pizza.getId(), updated.getItemId());
-        assertEquals(0, new BigDecimal("7.500").compareTo(updated.getAvailableQuantity()));
         assertEquals(new BigDecimal("18.50"), updated.getPricePf());
         assertEquals(new BigDecimal("24.90"), updated.getPricePj());
         assertEquals(Boolean.TRUE, updated.getInfinite());
-        assertEquals(Boolean.FALSE, updated.getEnabled());
+        assertEquals(Boolean.FALSE, updated.getActive());
         assertEquals(initialCount + 1, sellableStockRepository.count());
     }
 
@@ -78,9 +73,8 @@ class SellableStockServiceIT {
         Item flour = saveItem("Flour", ItemType.INGREDIENT);
 
         SellableStockUpsertRequest request = new SellableStockUpsertRequest();
-        request.setAvailableQuantity(new BigDecimal("1.000"));
-        request.setInfinite(false);
-        request.setEnabled(true);
+        request.setInfinite(true);
+        request.setActive(true);
 
         assertThrows(IllegalArgumentException.class, () -> sellableStockService.upsert(flour.getId(), request));
         assertEquals(initialCount, sellableStockRepository.count());

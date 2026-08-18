@@ -194,11 +194,10 @@ class DashboardServiceIT {
         operationalCostService.create(request);
     }
 
-    private void upsertSellableStock(Long itemId, BigDecimal availableQuantity) {
+    private void upsertSellableStock(Long itemId, BigDecimal ignoredQuantity) {
         SellableStockUpsertRequest request = new SellableStockUpsertRequest();
-        request.setAvailableQuantity(availableQuantity);
-        request.setInfinite(false);
-        request.setEnabled(true);
+        request.setInfinite(true);
+        request.setActive(true);
         sellableStockService.upsert(itemId, request);
     }
 
