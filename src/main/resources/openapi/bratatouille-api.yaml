@@ -79,6 +79,10 @@ paths:
     $ref: './paths/sellable-stocks.yaml#/sellableStocks'
   /api/sellable-stocks/{itemId}:
     $ref: './paths/sellable-stocks.yaml#/sellableStockByItemId'
+  /api/admin/sellable-stocks:
+    $ref: './paths/sellable-stocks.yaml#/sellableStockAdmin'
+  /api/admin/sellable-stocks/{itemId}:
+    $ref: './paths/sellable-stocks.yaml#/sellableStockAdminByItemId'
 
   /api/sales-orders:
     $ref: './paths/sales-orders.yaml#/salesOrders'
@@ -206,8 +210,10 @@ components:
 
     SellableStockUpsertRequest:
       $ref: './schemas/sellable-stock.yaml#/SellableStockUpsertRequest'
-    SellableStockResponse:
-      $ref: './schemas/sellable-stock.yaml#/SellableStockResponse'
+    SellableStockCatalogResponse:
+      $ref: './schemas/sellable-stock.yaml#/SellableStockCatalogResponse'
+    SellableStockAdminResponse:
+      $ref: './schemas/sellable-stock.yaml#/SellableStockAdminResponse'
 
     SalesOrderCreateRequest:
       $ref: './schemas/sales-order.yaml#/SalesOrderCreateRequest'

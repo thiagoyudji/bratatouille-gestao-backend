@@ -50,6 +50,12 @@ class AuthSecurityIT {
     }
 
     @Test
+    void anonymousRequestCannotAccessAdministrativeSellableStockCatalog() throws Exception {
+        mockMvc.perform(get("/api/admin/sellable-stocks"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void bootstrapAdminProducesTokenThatCanAccessInternalEndpoints() throws Exception {
         String token = mockMvc.perform(post("/api/auth/bootstrap/admin")
                         .contentType(MediaType.APPLICATION_JSON)

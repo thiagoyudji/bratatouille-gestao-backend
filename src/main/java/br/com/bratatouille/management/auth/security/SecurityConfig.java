@@ -63,7 +63,8 @@ public class SecurityConfig {
                         .requestMatchers(GET, "/api/sellable-stocks/**").permitAll()
                         .requestMatchers(POST, "/api/sales-orders").hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers(GET, "/api/sales-orders/**").hasAnyRole("ADMIN", "EMPLOYEE")
-                        .requestMatchers(PUT, "/api/sellable-stocks/**").hasAnyRole("ADMIN", "EMPLOYEE")
+                        .requestMatchers(GET, "/api/admin/sellable-stocks/**").hasRole("ADMIN")
+                        .requestMatchers(PUT, "/api/admin/sellable-stocks/**").hasRole("ADMIN")
                         .requestMatchers("/api/financial/**", "/api/financial-closings/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/api/dashboard/**",

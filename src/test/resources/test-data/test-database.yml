@@ -109,8 +109,7 @@ stocks:
 sellableStocks:
   - key: pizzaSellable
     item: pizzaMargherita
-    availableQuantity: 25.000
-    infinite: false
-    enabled: true
+    infinite: true
+    active: true
     pricePf: 18.500000
     pricePj: 24.900000

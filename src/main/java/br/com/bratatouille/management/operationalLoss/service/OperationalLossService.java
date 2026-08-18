@@ -10,7 +10,6 @@ import br.com.bratatouille.management.operationalLoss.entity.OperationalLossReas
 import br.com.bratatouille.management.operationalLoss.mapper.OperationalLossMapper;
 import br.com.bratatouille.management.operationalLoss.repository.OperationalLossRepository;
 import br.com.bratatouille.management.cost.service.CostService;
-import br.com.bratatouille.management.sellableStock.service.SellableStockService;
 import br.com.bratatouille.management.stock.service.StockService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,22 +26,19 @@ public class OperationalLossService {
     private final ItemRepository itemRepository;
     private final CostService costService;
     private final StockService stockService;
-    private final SellableStockService sellableStockService;
 
     public OperationalLossService(
             OperationalLossRepository operationalLossRepository,
             OperationalLossMapper operationalLossMapper,
             ItemRepository itemRepository,
             CostService costService,
-            StockService stockService,
-            SellableStockService sellableStockService
+            StockService stockService
     ) {
         this.operationalLossRepository = operationalLossRepository;
         this.operationalLossMapper = operationalLossMapper;
         this.itemRepository = itemRepository;
         this.costService = costService;
         this.stockService = stockService;
-        this.sellableStockService = sellableStockService;
     }
 
     @Transactional
@@ -66,10 +62,6 @@ public class OperationalLossService {
         OperationalLoss saved = operationalLossRepository.save(loss);
 
         stockService.removeForOperationalLoss(item, request.getQuantity(), saved.getId());
-
-        if (item.getType() == ItemType.FINISHED_PRODUCT) {
-            sellableStockService.decreaseAfterLossIfConfigured(item, request.getQuantity());
-        }
 
         return operationalLossMapper.toResponse(saved);
     }

@@ -1,6 +1,7 @@
 package br.com.bratatouille.management.sellableStock.service;
 
-import br.com.bratatouille.management.generated.model.SellableStockResponse;
+import br.com.bratatouille.management.generated.model.SellableStockAdminResponse;
+import br.com.bratatouille.management.generated.model.SellableStockCatalogResponse;
 import br.com.bratatouille.management.generated.model.SellableStockUpsertRequest;
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.entity.ItemType;
@@ -37,22 +38,32 @@ public class SellableStockService {
         this.sellableStockMapper = sellableStockMapper;
     }
 
-    public List<SellableStockResponse> findAll() {
+    public List<SellableStockCatalogResponse> findAllCatalog() {
         return sellableStockRepository.findAll()
                 .stream()
-                .map(this::toResponse)
+                .map(sellableStockMapper::toCatalogResponse)
                 .toList();
     }
 
-    public SellableStockResponse findByItemId(Long itemId) {
+    public SellableStockCatalogResponse findCatalogByItemId(Long itemId) {
         SellableStock sellableStock = sellableStockRepository.findByItemId(itemId)
                 .orElseThrow(() -> new NoSuchElementException("Sellable stock not found"));
 
-        return toResponse(sellableStock);
+        return sellableStockMapper.toCatalogResponse(sellableStock);
+    }
+
+    public List<SellableStockAdminResponse> findAllAdmin() {
+        return sellableStockRepository.findAll().stream().map(this::toAdminResponse).toList();
+    }
+
+    public SellableStockAdminResponse findAdminByItemId(Long itemId) {
+        SellableStock sellableStock = sellableStockRepository.findByItemId(itemId)
+                .orElseThrow(() -> new NoSuchElementException("Sellable stock not found"));
+        return toAdminResponse(sellableStock);
     }
 
     @Transactional
-    public SellableStockResponse upsert(Long itemId, SellableStockUpsertRequest request) {
+    public SellableStockAdminResponse upsert(Long itemId, SellableStockUpsertRequest request) {
         validateRequest(request);
 
         Item item = itemRepository.findById(itemId)
@@ -65,30 +76,28 @@ public class SellableStockService {
         SellableStock sellableStock = sellableStockRepository.findByItemId(itemId)
                 .orElseGet(() -> SellableStock.create(
                         item,
-                        request.getAvailableQuantity(),
                         request.getInfinite(),
-                        request.getEnabled(),
+                        request.getActive(),
                         item.getPricePf(),
                         item.getPricePj()
                 ));
 
         sellableStock.update(
-                request.getAvailableQuantity(),
                 request.getInfinite(),
-                request.getEnabled(),
+                request.getActive(),
                 item.getPricePf(),
                 item.getPricePj()
         );
 
         SellableStock saved = sellableStockRepository.save(sellableStock);
 
-        return sellableStockMapper.toResponse(saved, stock);
+        return sellableStockMapper.toAdminResponse(saved, stock);
     }
 
-    private SellableStockResponse toResponse(SellableStock sellableStock) {
+    private SellableStockAdminResponse toAdminResponse(SellableStock sellableStock) {
         Stock stock = stockRepository.findByItemId(sellableStock.getItem().getId()).orElse(null);
 
-        return sellableStockMapper.toResponse(sellableStock, stock);
+        return sellableStockMapper.toAdminResponse(sellableStock, stock);
     }
 
     private void validateRequest(SellableStockUpsertRequest request) {
@@ -100,13 +109,8 @@ public class SellableStockService {
             throw new IllegalArgumentException("infinite is required");
         }
 
-        if (request.getEnabled() == null) {
-            throw new IllegalArgumentException("enabled is required");
-        }
-
-        if (!request.getInfinite()
-                && (request.getAvailableQuantity() == null || request.getAvailableQuantity().compareTo(BigDecimal.ZERO) < 0)) {
-            throw new IllegalArgumentException("availableQuantity cannot be negative");
+        if (request.getActive() == null) {
+            throw new IllegalArgumentException("active is required");
         }
     }
 
@@ -127,42 +131,11 @@ public class SellableStockService {
                         "Sellable stock not configured for item: " + item.getName()
                 ));
 
-        if (!Boolean.TRUE.equals(sellableStock.getEnabled())) {
-            throw new IllegalArgumentException("Sellable stock is disabled for item: " + item.getName());
+        if (!Boolean.TRUE.equals(sellableStock.getActive())) {
+            throw new IllegalArgumentException("Sellable stock is inactive for item: " + item.getName());
         }
-
-        sellableStock.decrease(quantity);
-
-        sellableStockRepository.save(sellableStock);
-    }
-
-    @Transactional
-    public void increaseAfterSaleReversal(Item item, BigDecimal quantity) {
-        SellableStock sellableStock = sellableStockRepository.findByItemIdForUpdate(item.getId())
-                .orElseThrow(() -> new NoSuchElementException(
-                        "Sellable stock not configured for item: " + item.getName()
-                ));
-
-        if (!Boolean.TRUE.equals(sellableStock.getEnabled())) {
-            throw new IllegalArgumentException("Sellable stock is disabled for item: " + item.getName());
+        if (!Boolean.TRUE.equals(sellableStock.getInfinite())) {
+            throw new IllegalArgumentException("Sellable stock is not available for item: " + item.getName());
         }
-
-        sellableStock.increase(quantity);
-
-        sellableStockRepository.save(sellableStock);
-    }
-
-    @Transactional
-    public void decreaseAfterLossIfConfigured(Item item, BigDecimal quantity) {
-        sellableStockRepository.findByItemIdForUpdate(item.getId())
-                .ifPresent(sellableStock -> {
-                    if (!Boolean.TRUE.equals(sellableStock.getEnabled())) {
-                        return;
-                    }
-
-                    sellableStock.decrease(quantity);
-
-                    sellableStockRepository.save(sellableStock);
-                });
     }
 }

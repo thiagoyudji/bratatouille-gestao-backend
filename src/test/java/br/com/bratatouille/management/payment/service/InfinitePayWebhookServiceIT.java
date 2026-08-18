@@ -5,7 +5,7 @@ import br.com.bratatouille.management.generated.model.SalesOrderCreateRequest;
 import br.com.bratatouille.management.generated.model.SalesOrderCustomerType;
 import br.com.bratatouille.management.generated.model.SalesOrderItemRequest;
 import br.com.bratatouille.management.generated.model.SalesOrderResponse;
-import br.com.bratatouille.management.generated.model.SellableStockResponse;
+import br.com.bratatouille.management.generated.model.SellableStockAdminResponse;
 import br.com.bratatouille.management.generated.model.SellableStockUpsertRequest;
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.entity.ItemType;
@@ -81,8 +81,6 @@ class InfinitePayWebhookServiceIT {
         assertEquals("PAID", updatedOrder.getPaymentProviderStatus());
         assertNotNull(updatedOrder.getPaidAt());
 
-        SellableStockResponse sellableStock = sellableStockService.findByItemId(item.getId());
-        assertEquals(new BigDecimal("9.000"), sellableStock.getAvailableQuantity());
     }
 
     @Test
@@ -99,8 +97,6 @@ class InfinitePayWebhookServiceIT {
 
         assertEquals(SalesPaymentStatus.APPROVED, SalesPaymentStatus.valueOf(secondCall.getPaymentStatus().name()));
 
-        SellableStockResponse sellableStock = sellableStockService.findByItemId(item.getId());
-        assertEquals(new BigDecimal("9.000"), sellableStock.getAvailableQuantity());
     }
 
     @Test
@@ -117,8 +113,6 @@ class InfinitePayWebhookServiceIT {
         SalesOrderResponse unchangedOrder = salesOrderService.findById(createdOrder.getId());
         assertEquals(SalesPaymentStatus.PENDING, SalesPaymentStatus.valueOf(unchangedOrder.getPaymentStatus().name()));
 
-        SellableStockResponse sellableStock = sellableStockService.findByItemId(item.getId());
-        assertEquals(new BigDecimal("9.000"), sellableStock.getAvailableQuantity());
     }
 
     @Test
@@ -224,11 +218,10 @@ class InfinitePayWebhookServiceIT {
         ));
     }
 
-    private void upsertSellableStock(Long itemId, BigDecimal availableQuantity) {
+    private void upsertSellableStock(Long itemId, BigDecimal ignoredQuantity) {
         SellableStockUpsertRequest request = new SellableStockUpsertRequest();
-        request.setAvailableQuantity(availableQuantity);
-        request.setInfinite(false);
-        request.setEnabled(true);
+        request.setInfinite(true);
+        request.setActive(true);
         sellableStockService.upsert(itemId, request);
     }
 
