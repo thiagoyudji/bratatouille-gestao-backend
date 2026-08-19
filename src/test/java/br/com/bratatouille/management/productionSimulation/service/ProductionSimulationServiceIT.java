@@ -154,7 +154,7 @@ class ProductionSimulationServiceIT {
 
     private void seedPurchase(Partner paidBy, Item item, BigDecimal quantity, BigDecimal totalValue) {
         PurchaseCreateRequest request = new PurchaseCreateRequest();
-        request.setPaidByPartnerId(paidBy.getId());
+        request.setPayerType(PurchaseCreateRequest.PayerTypeEnum.BRATATOUILLE);
         request.setPurchaseDate(LocalDate.of(2026, 8, 4));
         request.setSupplier("Simulation supplier");
         request.setNote("simulation seed");
@@ -165,11 +165,6 @@ class ProductionSimulationServiceIT {
         purchaseItem.setUnit(PurchaseItemRequest.UnitEnum.G);
         purchaseItem.setTotalValue(totalValue);
         request.setItems(List.of(purchaseItem));
-
-        PurchaseSplitRequest split = new PurchaseSplitRequest();
-        split.setPartnerId(paidBy.getId());
-        split.setPercentage(new BigDecimal("100.00"));
-        request.setSplits(List.of(split));
 
         purchaseService.create(request);
     }

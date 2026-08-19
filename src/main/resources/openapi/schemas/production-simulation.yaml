@@ -6,6 +6,9 @@ ProductionSimulationItemResponse:
       format: int64
     itemName:
       type: string
+    itemType:
+      type: string
+      enum: [INGREDIENT, PACKAGING]
     requiredQuantity:
       type: number
     usableQuantity:

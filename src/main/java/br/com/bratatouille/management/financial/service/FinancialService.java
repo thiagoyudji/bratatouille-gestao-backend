@@ -127,8 +127,10 @@ public class FinancialService {
             Map<Long, PartnerBalanceAccumulator> accumulators,
             Purchase purchase
     ) {
-        getOrCreateAccumulator(accumulators, purchase.getPaidBy())
-                .addCredit(purchase.getTotalAmount());
+        if (purchase.getPaidBy() != null) {
+            getOrCreateAccumulator(accumulators, purchase.getPaidBy())
+                    .addCredit(purchase.getTotalAmount());
+        }
 
         purchase.getSplits().forEach(split ->
                 applySplitToBalances(accumulators, split)
@@ -245,8 +247,10 @@ public class FinancialService {
         Map<Long, PartnerFinancialSummaryAccumulator> accumulators = new HashMap<>();
 
         purchases.forEach(purchase -> {
-            getOrCreateSummaryAccumulator(accumulators, purchase.getPaidBy())
-                    .addPaid(purchase.getTotalAmount());
+            if (purchase.getPaidBy() != null) {
+                getOrCreateSummaryAccumulator(accumulators, purchase.getPaidBy())
+                        .addPaid(purchase.getTotalAmount());
+            }
 
             purchase.getSplits().forEach(split ->
                     getOrCreateSummaryAccumulator(accumulators, split.getPartner())
@@ -342,9 +346,12 @@ public class FinancialService {
         response.setDate(purchase.getPurchaseDate());
         response.setType(CashFlowEntryResponse.TypeEnum.PURCHASE);
         response.setSourceId(purchase.getId());
-        response.setDescription("Purchase - " + purchase.getSupplier());
-        response.setPartnerId(purchase.getPaidBy().getId());
-        response.setPartnerName(purchase.getPaidBy().getName());
+        response.setDescription("Purchase - " + purchase.getSupplier()
+                + (purchase.getPaidBy() == null ? " (Bratatouille)" : ""));
+        if (purchase.getPaidBy() != null) {
+            response.setPartnerId(purchase.getPaidBy().getId());
+            response.setPartnerName(purchase.getPaidBy().getName());
+        }
         response.setAmount(MoneyUtils.normalize(purchase.getTotalAmount()));
         response.setDirection(CashFlowEntryResponse.DirectionEnum.OUT);
 

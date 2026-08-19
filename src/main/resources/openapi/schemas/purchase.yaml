@@ -65,7 +65,7 @@ PurchaseNewItemRequest:
       type: string
     type:
       type: string
-      enum: [INGREDIENT, PACKAGING, FINISHED_PRODUCT]
+      enum: [INGREDIENT, PACKAGING]
     baseUnit:
       type: string
       enum: [G, ML, UN]
@@ -104,6 +104,12 @@ PurchaseResponse:
     paidByPartnerId:
       type: integer
       format: int64
+    payerType:
+      type: string
+      description: Identidade do pagador da compra.
+      enum:
+        - BRATATOUILLE
+        - PARTNER
     paidByPartnerName:
       type: string
     totalAmount:
