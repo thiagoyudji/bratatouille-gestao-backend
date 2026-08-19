@@ -18,6 +18,7 @@ import br.com.bratatouille.management.purchase.domain.PurchaseSplitCalculator;
 import br.com.bratatouille.management.purchase.domain.PurchaseSplitData;
 import br.com.bratatouille.management.purchase.entity.Purchase;
 import br.com.bratatouille.management.purchase.entity.PurchaseItem;
+import br.com.bratatouille.management.purchase.entity.PurchasePayerType;
 import br.com.bratatouille.management.purchase.mapper.PurchaseMapper;
 import br.com.bratatouille.management.purchase.repository.PurchaseRepository;
 import br.com.bratatouille.management.stock.service.StockService;
@@ -57,7 +58,7 @@ public class PurchaseService {
 
         Partner payer = resolvePayer(request);
 
-        if (!Boolean.TRUE.equals(payer.getActive())) {
+        if (payer != null && !Boolean.TRUE.equals(payer.getActive())) {
             throw new IllegalArgumentException("payer partner must be active");
         }
 
@@ -72,6 +73,7 @@ public class PurchaseService {
 
         Purchase purchase = Purchase.create(
                 request.getPurchaseDate(),
+                toPayerType(request.getPayerType()),
                 payer,
                 request.getSupplier(),
                 request.getNote(),
@@ -91,8 +93,7 @@ public class PurchaseService {
 
         if (payerType == PurchaseCreateRequest.PayerTypeEnum.BRATATOUILLE
                 || (payerType == null && request.getPaidByPartnerId() == null)) {
-            return partnerRepository.findFirstByNameIgnoreCaseAndActiveTrue("Bratatouille")
-                    .orElseThrow(() -> new NoSuchElementException("Bratatouille partner not found"));
+            return null;
         }
 
         if (payerType == PurchaseCreateRequest.PayerTypeEnum.PARTNER
@@ -100,10 +101,32 @@ public class PurchaseService {
             throw new IllegalArgumentException("paidByPartnerId is required when payerType is PARTNER");
         }
 
-        return partnerRepository.findById(request.getPaidByPartnerId())
+        Partner partner = partnerRepository.findById(request.getPaidByPartnerId())
                 .orElseThrow(() -> new NoSuchElementException("Partner not found"));
+
+        validateEligiblePartner(partner);
+        return partner;
     }
 
+    private PurchasePayerType toPayerType(PurchaseCreateRequest.PayerTypeEnum payerType) {
+        return payerType == PurchaseCreateRequest.PayerTypeEnum.PARTNER
+                ? PurchasePayerType.PARTNER
+                : PurchasePayerType.BRATATOUILLE;
+    }
+
+    private void validateEligiblePartner(Partner partner) {
+        if (!Boolean.TRUE.equals(partner.getActive())) {
+            throw new IllegalArgumentException("payer partner must be active");
+        }
+
+        if (partner.getAuthUser() == null
+                || partner.getAuthUser().getRole() != br.com.bratatouille.management.auth.entity.UserRole.ADMIN
+                || !Boolean.TRUE.equals(partner.getAuthUser().getActive())) {
+            throw new IllegalArgumentException("partner must be associated with an active ADMIN dashboard user");
+        }
+    }
+
+    @Transactional(readOnly = true)
     public List<PurchaseResponse> findAll() {
         return purchaseRepository.findAll()
                 .stream()
@@ -111,6 +134,7 @@ public class PurchaseService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public PurchaseResponse findById(Long id) {
         Purchase purchase = purchaseRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Purchase not found"));
@@ -144,6 +168,7 @@ public class PurchaseService {
     private PartnerAmountData toPartnerAmountData(PurchaseSplitRequest request, BigDecimal totalAmount) {
         Partner partner = partnerRepository.findById(request.getPartnerId())
                 .orElseThrow(() -> new NoSuchElementException("Partner not found"));
+        validateEligiblePartner(partner);
         BigDecimal amount = request.getAmount();
         if (amount == null && request.getPercentage() != null) {
             amount = totalAmount.multiply(request.getPercentage())
@@ -171,6 +196,10 @@ public class PurchaseService {
             ));
         } else {
             throw new IllegalArgumentException("itemId or newItem is required");
+        }
+
+        if (item.getType() == ItemType.FINISHED_PRODUCT) {
+            throw new IllegalArgumentException("finished products cannot be purchased");
         }
 
         return new PurchaseItemData(

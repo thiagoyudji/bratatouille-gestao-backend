@@ -17,8 +17,11 @@ public class PurchaseMapper {
 
         response.setId(purchase.getId());
         response.setPurchaseDate(purchase.getPurchaseDate());
-        response.setPaidByPartnerId(purchase.getPaidBy().getId());
-        response.setPaidByPartnerName(purchase.getPaidBy().getName());
+        response.setPayerType(PurchaseResponse.PayerTypeEnum.fromValue(purchase.getPayerType().name()));
+        if (purchase.getPaidBy() != null) {
+            response.setPaidByPartnerId(purchase.getPaidBy().getId());
+            response.setPaidByPartnerName(purchase.getPaidBy().getName());
+        }
         response.setTotalAmount(purchase.getTotalAmount());
         response.setNote(purchase.getNote());
         response.setCreatedAt(ApiResponseMapperSupport.toUtc(purchase.getCreatedAt()));

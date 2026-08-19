@@ -2,8 +2,12 @@ package br.com.bratatouille.management.purchase.service;
 
 import br.com.bratatouille.management.generated.model.PurchaseCreateRequest;
 import br.com.bratatouille.management.generated.model.PurchaseItemRequest;
+import br.com.bratatouille.management.generated.model.PurchaseNewItemRequest;
 import br.com.bratatouille.management.generated.model.PurchaseResponse;
 import br.com.bratatouille.management.generated.model.PurchaseSplitRequest;
+import br.com.bratatouille.management.auth.entity.AuthUser;
+import br.com.bratatouille.management.auth.entity.UserRole;
+import br.com.bratatouille.management.auth.repository.AuthUserRepository;
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.entity.ItemType;
 import br.com.bratatouille.management.item.entity.UnitType;
@@ -29,6 +33,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,6 +57,9 @@ class PurchaseServiceIT {
     private PartnerRepository partnerRepository;
 
     @Autowired
+    private AuthUserRepository authUserRepository;
+
+    @Autowired
     private ItemRepository itemRepository;
 
     @Autowired
@@ -73,8 +81,13 @@ class PurchaseServiceIT {
                 true,
                 new BigDecimal("50.00"),
                 LocalDateTime.of(2026, 8, 1, 10, 0),
-                Set.of(PartnerRole.ADMIN)
+                new HashSet<>(Set.of(PartnerRole.ADMIN))
         ));
+        payer.associateAuthUser(authUserRepository.save(new AuthUser(
+                "main.partner.stock",
+                "test-password-hash",
+                UserRole.ADMIN
+        )));
 
         Item flour = itemRepository.save(new Item(
                 "Flour",
@@ -87,6 +100,7 @@ class PurchaseServiceIT {
         ));
 
         PurchaseCreateRequest request = new PurchaseCreateRequest();
+        request.setPayerType(PurchaseCreateRequest.PayerTypeEnum.PARTNER);
         request.setPaidByPartnerId(payer.getId());
         request.setPurchaseDate(LocalDate.of(2026, 8, 4));
         request.setSupplier("Supplier A");
@@ -141,8 +155,14 @@ class PurchaseServiceIT {
                 true,
                 new BigDecimal("50.00"),
                 LocalDateTime.of(2026, 8, 1, 10, 0),
-                Set.of(PartnerRole.ADMIN)
+                new HashSet<>(Set.of(PartnerRole.ADMIN))
         ));
+        payer.associateAuthUser(authUserRepository.save(new AuthUser(
+                "main.partner.rollback",
+                "test-password-hash",
+                UserRole.ADMIN
+        )));
+        payer = partnerRepository.save(payer);
 
         Item flour = itemRepository.save(new Item(
                 "Flour",
@@ -174,6 +194,7 @@ class PurchaseServiceIT {
         }).when(stockService).addFromPurchase(any(), any(), any());
 
         PurchaseCreateRequest request = new PurchaseCreateRequest();
+        request.setPayerType(PurchaseCreateRequest.PayerTypeEnum.PARTNER);
         request.setPaidByPartnerId(payer.getId());
         request.setPurchaseDate(LocalDate.of(2026, 8, 4));
         request.setSupplier("Supplier A");
@@ -203,5 +224,34 @@ class PurchaseServiceIT {
         assertEquals(initialMovementCount, stockMovementRepository.count());
         assertTrue(stockRepository.findByItemId(flour.getId()).isEmpty());
         assertTrue(stockRepository.findByItemId(sugar.getId()).isEmpty());
+    }
+
+    @Test
+    void createPurchasePaidByBratatouilleDoesNotRequireTechnicalPartner() {
+        PurchaseCreateRequest request = new PurchaseCreateRequest();
+        request.setPayerType(PurchaseCreateRequest.PayerTypeEnum.BRATATOUILLE);
+        request.setPurchaseDate(LocalDate.of(2026, 8, 18));
+        request.setSupplier("Local supplier");
+
+        PurchaseNewItemRequest newItem = new PurchaseNewItemRequest();
+        newItem.setName("Integrated pepper");
+        newItem.setType(PurchaseNewItemRequest.TypeEnum.INGREDIENT);
+        newItem.setBaseUnit(PurchaseNewItemRequest.BaseUnitEnum.G);
+
+        PurchaseItemRequest purchaseItem = new PurchaseItemRequest();
+        purchaseItem.setNewItem(newItem);
+        purchaseItem.setQuantity(new BigDecimal("2000"));
+        purchaseItem.setUnit(PurchaseItemRequest.UnitEnum.G);
+        purchaseItem.setTotalValue(new BigDecimal("12.50"));
+        request.setItems(List.of(purchaseItem));
+
+        PurchaseResponse response = purchaseService.create(request);
+
+        assertEquals("BRATATOUILLE", response.getPayerType().getValue());
+        assertTrue(response.getPaidByPartnerId() == null);
+        assertEquals(new BigDecimal("12.50"), response.getTotalAmount());
+        assertEquals(1, response.getItems().size());
+        assertTrue(response.getSplits().isEmpty());
+        assertTrue(purchaseRepository.findById(response.getId()).orElseThrow().getPaidBy() == null);
     }
 }

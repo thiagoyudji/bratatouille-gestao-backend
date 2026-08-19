@@ -8,9 +8,11 @@ import br.com.bratatouille.management.cost.service.CostService;
 import br.com.bratatouille.management.recipe.entity.Recipe;
 import br.com.bratatouille.management.recipe.entity.RecipeItem;
 import br.com.bratatouille.management.recipe.repository.RecipeRepository;
+import br.com.bratatouille.management.item.entity.ItemType;
 import br.com.bratatouille.management.stock.entity.Stock;
 import br.com.bratatouille.management.stock.repository.StockRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -37,6 +39,7 @@ public class ProductionSimulationService {
         this.costService = costService;
     }
 
+    @Transactional(readOnly = true)
     public ProductionSimulationResponse simulate(Long recipeId, BigDecimal quantity) {
         validateRequest(recipeId, quantity);
 
@@ -69,6 +72,7 @@ public class ProductionSimulationService {
         return response;
     }
 
+    @Transactional(readOnly = true)
     public ProductionSimulationResponse simulateFromInputs(ProductionSimulationRequest request) {
         if (request == null || request.getRecipeId() == null || request.getInputs() == null || request.getInputs().isEmpty()) {
             throw new IllegalArgumentException("recipeId and inputs are required");
@@ -87,12 +91,16 @@ public class ProductionSimulationService {
             throw new IllegalArgumentException("input quantities cannot be negative");
         }
         Set<Long> recipeInputIds = recipe.getItems().stream()
+                .filter(recipeItem -> recipeItem.getItem().getType() == ItemType.INGREDIENT)
                 .map(recipeItem -> recipeItem.getItem().getId())
                 .collect(Collectors.toSet());
         if (supplied.keySet().stream().anyMatch(itemId -> itemId == null || !recipeInputIds.contains(itemId))) {
             throw new IllegalArgumentException("simulation inputs must belong to the selected recipe");
         }
         recipe.getItems().forEach(recipeItem -> {
+            if (recipeItem.getItem().getType() == ItemType.PACKAGING) {
+                return;
+            }
             BigDecimal quantity = supplied.get(recipeItem.getItem().getId());
             if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("all recipe inputs must be informed");
@@ -102,13 +110,16 @@ public class ProductionSimulationService {
             }
         });
         BigDecimal factor = recipe.getItems().stream()
+                .filter(item -> item.getItem().getType() == ItemType.INGREDIENT)
                 .map(item -> supplied.getOrDefault(item.getItem().getId(), BigDecimal.ZERO)
                         .divide(item.getQuantity(), 6, RoundingMode.DOWN))
                 .min(BigDecimal::compareTo)
                 .orElse(BigDecimal.ZERO);
         BigDecimal pots = factor.multiply(recipe.getYieldQuantity()).setScale(0, RoundingMode.DOWN);
         List<ProductionSimulationItemResponse> items = recipe.getItems().stream()
-                .map(item -> simulateInputItem(item, supplied.getOrDefault(item.getItem().getId(), BigDecimal.ZERO), factor))
+                .map(item -> item.getItem().getType() == ItemType.PACKAGING
+                        ? simulatePackagingItem(item, factor)
+                        : simulateInputItem(item, supplied.getOrDefault(item.getItem().getId(), BigDecimal.ZERO), factor))
                 .toList();
         ProductionSimulationResponse response = new ProductionSimulationResponse();
         response.setRecipeId(recipe.getId());
@@ -130,12 +141,31 @@ public class ProductionSimulationService {
         ProductionSimulationItemResponse response = new ProductionSimulationItemResponse();
         response.setItemId(recipeItem.getItem().getId());
         response.setItemName(recipeItem.getItem().getName());
+        response.setItemType(ProductionSimulationItemResponse.ItemTypeEnum.INGREDIENT);
         response.setRequiredQuantity(required);
         response.setUsableQuantity(supplied);
         response.setLossQuantity(excess);
         response.setYieldPercentage(BigDecimal.ONE);
         response.setCurrentStock(supplied);
         response.setMissingQuantity(missing);
+        response.setUnitCost(unitCost);
+        response.setTotalCost(unitCost.multiply(required));
+        return response;
+    }
+
+    private ProductionSimulationItemResponse simulatePackagingItem(RecipeItem recipeItem, BigDecimal factor) {
+        BigDecimal required = recipeItem.getQuantity().multiply(factor);
+        BigDecimal unitCost = costService.findUnitCostOrZero(recipeItem.getItem());
+        ProductionSimulationItemResponse response = new ProductionSimulationItemResponse();
+        response.setItemId(recipeItem.getItem().getId());
+        response.setItemName(recipeItem.getItem().getName());
+        response.setItemType(ProductionSimulationItemResponse.ItemTypeEnum.PACKAGING);
+        response.setRequiredQuantity(required);
+        response.setUsableQuantity(required);
+        response.setLossQuantity(BigDecimal.ZERO);
+        response.setYieldPercentage(BigDecimal.ONE);
+        response.setCurrentStock(required);
+        response.setMissingQuantity(BigDecimal.ZERO);
         response.setUnitCost(unitCost);
         response.setTotalCost(unitCost.multiply(required));
         return response;

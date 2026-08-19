@@ -6,6 +6,7 @@ import br.com.bratatouille.management.generated.model.RecipeResponse;
 import br.com.bratatouille.management.generated.model.RecipeUpdateRequest;
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.entity.ItemType;
+import br.com.bratatouille.management.item.entity.UnitType;
 import br.com.bratatouille.management.item.repository.ItemRepository;
 import br.com.bratatouille.management.recipe.domain.ItemQuantityData;
 import br.com.bratatouille.management.recipe.entity.Recipe;
@@ -37,7 +38,7 @@ public class RecipeService {
 
     @Transactional
     public RecipeResponse create(RecipeCreateRequest request) {
-        Item outputItem = findItem(request.getOutputItemId());
+        Item outputItem = resolveOutputItem(request);
 
         validateOutputItem(outputItem);
 
@@ -116,6 +117,36 @@ public class RecipeService {
     private Item findItem(Long id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Item not found"));
+    }
+
+    private Item resolveOutputItem(RecipeCreateRequest request) {
+        if (request.getOutputItemId() != null) {
+            return findItem(request.getOutputItemId());
+        }
+
+        String outputItemName = request.getOutputItemName();
+        if (outputItemName == null || outputItemName.isBlank()) {
+            outputItemName = request.getName();
+        }
+        if (outputItemName == null || outputItemName.isBlank()) {
+            throw new IllegalArgumentException("outputItemName is required when outputItemId is not provided");
+        }
+
+        Item existingItem = itemRepository.findByNameIgnoreCase(outputItemName.trim()).orElse(null);
+        if (existingItem != null) {
+            validateOutputItem(existingItem);
+            return existingItem;
+        }
+
+        return itemRepository.save(new Item(
+                outputItemName.trim(),
+                ItemType.FINISHED_PRODUCT,
+                UnitType.UN,
+                null,
+                null,
+                null,
+                null
+        ));
     }
 
     private List<ItemQuantityData> buildItemsData(List<RecipeItemRequest> items) {

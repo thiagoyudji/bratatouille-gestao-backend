@@ -27,8 +27,12 @@ public class Purchase {
     private LocalDate purchaseDate;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "paid_by_partner_id", nullable = false)
+    @JoinColumn(name = "paid_by_partner_id")
     private Partner paidBy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PurchasePayerType payerType;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal totalAmount;
@@ -50,10 +54,11 @@ public class Purchase {
     protected Purchase() {
     }
 
-    private Purchase(LocalDate purchaseDate, Partner paidBy, String supplier, String note) {
-        validateHeader(purchaseDate, paidBy, supplier);
+    private Purchase(LocalDate purchaseDate, PurchasePayerType payerType, Partner paidBy, String supplier, String note) {
+        validateHeader(purchaseDate, payerType, paidBy, supplier);
 
         this.purchaseDate = purchaseDate;
+        this.payerType = payerType;
         this.paidBy = paidBy;
         this.supplier = supplier;
         this.note = note;
@@ -67,16 +72,29 @@ public class Purchase {
             List<PurchaseItemData> itemsData,
             List<PurchaseSplitData> splitsData
     ) {
+        return create(purchaseDate, PurchasePayerType.PARTNER, paidBy, supplier, note, itemsData, splitsData);
+    }
+
+    public static Purchase create(
+            LocalDate purchaseDate,
+            PurchasePayerType payerType,
+            Partner paidBy,
+            String supplier,
+            String note,
+            List<PurchaseItemData> itemsData,
+            List<PurchaseSplitData> splitsData
+    ) {
         validateItemsData(itemsData);
         validateDuplicatedItems(itemsData);
-        validateSplitsData(splitsData);
-        validateDuplicatedSplitPartners(splitsData);
+        List<PurchaseSplitData> normalizedSplits = splitsData == null ? List.of() : splitsData;
+        validateSplitsData(normalizedSplits);
+        validateDuplicatedSplitPartners(normalizedSplits);
 
-        Purchase purchase = new Purchase(purchaseDate, paidBy, supplier, note);
+        Purchase purchase = new Purchase(purchaseDate, payerType, paidBy, supplier, note);
 
         purchase.addItems(itemsData);
         purchase.defineTotalFromItems();
-        purchase.addSplits(splitsData);
+        purchase.addSplits(normalizedSplits);
         purchase.validateSplitTotal();
 
         return purchase;
@@ -140,6 +158,10 @@ public class Purchase {
     }
 
     private void validateSplitTotal() {
+        if (this.splits.isEmpty()) {
+            return;
+        }
+
         BigDecimal splitTotal = MoneyUtils.normalize(
                 this.splits.stream()
                         .map(PurchaseSplit::getOwedAmount)
@@ -151,13 +173,26 @@ public class Purchase {
         }
     }
 
-    private static void validateHeader(LocalDate purchaseDate, Partner paidBy, String supplier) {
+    private static void validateHeader(
+            LocalDate purchaseDate,
+            PurchasePayerType payerType,
+            Partner paidBy,
+            String supplier
+    ) {
         if (purchaseDate == null) {
             throw new IllegalArgumentException("purchaseDate is required");
         }
 
-        if (paidBy == null) {
-            throw new IllegalArgumentException("paidBy is required");
+        if (payerType == null) {
+            throw new IllegalArgumentException("payerType is required");
+        }
+
+        if (payerType == PurchasePayerType.PARTNER && paidBy == null) {
+            throw new IllegalArgumentException("paidBy is required for partner payer");
+        }
+
+        if (payerType == PurchasePayerType.BRATATOUILLE && paidBy != null) {
+            throw new IllegalArgumentException("paidBy must be empty for Bratatouille payer");
         }
 
         if (supplier == null || supplier.isBlank()) {
@@ -172,9 +207,7 @@ public class Purchase {
     }
 
     private static void validateSplitsData(List<PurchaseSplitData> splitsData) {
-        if (splitsData == null || splitsData.isEmpty()) {
-            throw new IllegalArgumentException("purchase must have at least one split");
-        }
+        // A purchase paid by Bratatouille may have no reimbursement split.
     }
 
     public Long getId() {
@@ -187,6 +220,10 @@ public class Purchase {
 
     public Partner getPaidBy() {
         return paidBy;
+    }
+
+    public PurchasePayerType getPayerType() {
+        return payerType;
     }
 
     public BigDecimal getTotalAmount() {

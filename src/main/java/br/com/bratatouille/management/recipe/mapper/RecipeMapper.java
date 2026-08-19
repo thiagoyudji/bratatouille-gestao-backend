@@ -39,6 +39,9 @@ public class RecipeMapper {
 
         response.setItemId(recipeItem.getItem().getId());
         response.setItemName(recipeItem.getItem().getName());
+        response.setItemType(recipeItem.getItem().getType() == br.com.bratatouille.management.item.entity.ItemType.PACKAGING
+                ? RecipeItemResponse.ItemTypeEnum.PACKAGING
+                : RecipeItemResponse.ItemTypeEnum.INGREDIENT);
         response.setQuantity(recipeItem.getQuantity());
         response.setUnit(recipeItem.getItem().getBaseUnit().name());
 
