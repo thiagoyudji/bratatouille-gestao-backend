@@ -1,18 +1,14 @@
 CreateItemRequest:
   type: object
-  description: Cadastro de item com preço separado para PF e PJ.
+  description: Cadastro base de item. Preços de venda são definidos no estoque fake.
   required:
     - name
     - type
     - baseUnit
-    - pricePf
-    - pricePj
   example:
     name: Pão de queijo
     type: FINISHED_PRODUCT
     baseUnit: UN
-    pricePf: 12.9
-    pricePj: 15.9
   properties:
     name:
       type: string
@@ -34,8 +30,10 @@ CreateItemRequest:
       type: number
     pricePf:
       type: number
+      description: Campo legado; preços devem ser definidos no estoque fake.
     pricePj:
       type: number
+      description: Campo legado; preços devem ser definidos no estoque fake.
 
 UpdateItemRequest:
   type: object
@@ -50,14 +48,16 @@ UpdateItemRequest:
       type: number
     pricePf:
       type: number
+      description: Campo legado opcional; preço PF deve ser definido no estoque fake.
     pricePj:
       type: number
+      description: Campo legado opcional; preço PJ deve ser definido no estoque fake.
     active:
       type: boolean
 
 ItemResponse:
   type: object
-  description: Item persistido com os preços de venda PF e PJ.
+  description: Item persistido. Preços de venda, quando aplicáveis, são controlados no estoque fake.
   properties:
     id:
       type: integer

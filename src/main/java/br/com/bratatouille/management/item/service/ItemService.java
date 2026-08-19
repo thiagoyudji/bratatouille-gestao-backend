@@ -26,18 +26,12 @@ public class ItemService {
     }
 
     public ItemResponse create(CreateItemRequest request) {
-        if (request.getPricePf() == null || request.getPricePj() == null) {
-            throw new IllegalArgumentException("item prices are required");
-        }
-
         Item item = new Item(
                 request.getName(),
                 ItemType.valueOf(request.getType().name()),
                 UnitType.valueOf(request.getBaseUnit().name()),
                 request.getLowStockThreshold(),
-                request.getCriticalStockThreshold(),
-                request.getPricePf(),
-                request.getPricePj()
+                request.getCriticalStockThreshold()
         );
 
         Item saved = itemRepository.save(item);
