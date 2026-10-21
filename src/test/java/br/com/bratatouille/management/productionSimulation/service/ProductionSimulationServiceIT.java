@@ -130,6 +130,52 @@ class ProductionSimulationServiceIT {
         assertEquals(0, new BigDecimal("0.000000").compareTo(response.getItems().get(0).getMissingQuantity()));
     }
 
+
+    @Test
+    void simulationWithoutKnownYieldDoesNotInventFinishedUnits() {
+        Item flour = saveItem("Unknown yield flour", ItemType.INGREDIENT);
+        Item cake = saveItem("Unknown yield cake", ItemType.FINISHED_PRODUCT);
+        RecipeCreateRequest recipeRequest = new RecipeCreateRequest();
+        recipeRequest.setName("Unknown yield");
+        recipeRequest.setOutputItemId(cake.getId());
+        RecipeItemRequest ingredient = new RecipeItemRequest();
+        ingredient.setItemId(flour.getId());
+        ingredient.setQuantity(new BigDecimal("2"));
+        recipeRequest.setItems(List.of(ingredient));
+        Long recipeId = recipeService.create(recipeRequest).getId();
+
+        ProductionSimulationInputRequest input = new ProductionSimulationInputRequest();
+        input.setItemId(flour.getId());
+        input.setQuantity(new BigDecimal("4"));
+        ProductionSimulationRequest request = new ProductionSimulationRequest();
+        request.setRecipeId(recipeId);
+        request.setInputs(List.of(input));
+
+        ProductionSimulationResponse response = productionSimulationService.simulateFromInputs(request);
+        org.junit.jupiter.api.Assertions.assertNull(response.getQuantity());
+        assertEquals(0, new BigDecimal("4").compareTo(response.getItems().get(0).getRequiredQuantity()));
+        assertThrows(IllegalArgumentException.class,
+                () -> productionSimulationService.simulate(recipeId, BigDecimal.ONE));
+    }
+
+    @Test
+    void outputBasedSimulationScalesUsingReferenceYield() {
+        Item flour = saveItem("Scaled yield flour", ItemType.INGREDIENT);
+        Item cake = saveItem("Scaled yield cake", ItemType.FINISHED_PRODUCT);
+        RecipeCreateRequest request = new RecipeCreateRequest();
+        request.setName("Scaled yield");
+        request.setOutputItemId(cake.getId());
+        request.setYieldQuantity(new BigDecimal("5"));
+        RecipeItemRequest ingredient = new RecipeItemRequest();
+        ingredient.setItemId(flour.getId());
+        ingredient.setQuantity(new BigDecimal("10"));
+        request.setItems(List.of(ingredient));
+        Long recipeId = recipeService.create(request).getId();
+
+        ProductionSimulationResponse result = productionSimulationService.simulate(recipeId, new BigDecimal("2"));
+        assertEquals(0, new BigDecimal("4").compareTo(result.getItems().get(0).getRequiredQuantity()));
+    }
+
     private Partner savePartner(String name) {
         return partnerRepository.save(new Partner(
                 name,
@@ -173,6 +219,7 @@ class ProductionSimulationServiceIT {
         RecipeCreateRequest request = new RecipeCreateRequest();
         request.setName("Cake recipe");
         request.setOutputItemId(cake.getId());
+        request.setYieldQuantity(BigDecimal.ONE);
 
         RecipeItemRequest item = new RecipeItemRequest();
         item.setItemId(flour.getId());

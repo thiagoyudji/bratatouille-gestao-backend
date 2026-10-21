@@ -14,7 +14,6 @@ RecipeCreateRequest:
   type: object
   required:
     - name
-    - yieldQuantity
     - items
   properties:
     name:
@@ -28,6 +27,8 @@ RecipeCreateRequest:
       description: Name of the finished product to create or reuse for this recipe.
     yieldQuantity:
       type: number
+      nullable: true
+      description: Optional reference finished units; null means unknown.
     items:
       type: array
       items:
@@ -38,7 +39,6 @@ RecipeUpdateRequest:
   required:
     - name
     - outputItemId
-    - yieldQuantity
     - items
   properties:
     name:
@@ -48,6 +48,8 @@ RecipeUpdateRequest:
       format: int64
     yieldQuantity:
       type: number
+      nullable: true
+      description: Optional reference finished units; null means unknown.
     items:
       type: array
       items:
@@ -84,6 +86,8 @@ RecipeResponse:
       type: string
     yieldQuantity:
       type: number
+      nullable: true
+      description: Optional reference finished units; null means unknown.
     active:
       type: boolean
     items:

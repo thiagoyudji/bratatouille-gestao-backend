@@ -41,6 +41,7 @@ ProductionSimulationResponse:
       type: string
     quantity:
       type: number
+      nullable: true
       description: Estimated pots that can be produced from the supplied inputs
     estimatedTotalCost:
       type: number

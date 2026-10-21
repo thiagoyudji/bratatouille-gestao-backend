@@ -198,6 +198,8 @@ components:
 
     ProductionCreateRequest:
       $ref: './schemas/production.yaml#/ProductionCreateRequest'
+    ProductionConsumedItemRequest:
+      $ref: './schemas/production.yaml#/ProductionConsumedItemRequest'
     ProductionResponse:
       $ref: './schemas/production.yaml#/ProductionResponse'
     ProductionItemResponse:
