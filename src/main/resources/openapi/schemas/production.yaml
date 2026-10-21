@@ -11,7 +11,7 @@ ProductionCreateRequest:
       type: number
     items:
       type: array
-      description: Actual consumption of all ingredient and packaging items. Mandatory if yield is unknown.
+      description: Actual ingredient quantities are required when yield is unknown. Packaging is calculated per finished unit from recipe entries; optional packaging quantities override the default to account for losses and must not be lower than the calculated minimum.
       items:
         $ref: '#/ProductionConsumedItemRequest'
 
