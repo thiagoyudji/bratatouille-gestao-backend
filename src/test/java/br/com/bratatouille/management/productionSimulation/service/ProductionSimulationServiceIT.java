@@ -13,6 +13,8 @@ import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.entity.ItemType;
 import br.com.bratatouille.management.item.entity.UnitType;
 import br.com.bratatouille.management.item.repository.ItemRepository;
+import br.com.bratatouille.management.stock.entity.Stock;
+import br.com.bratatouille.management.stock.repository.StockRepository;
 import br.com.bratatouille.management.partner.entity.Partner;
 import br.com.bratatouille.management.partner.entity.PartnerRole;
 import br.com.bratatouille.management.partner.repository.PartnerRepository;
@@ -53,6 +55,49 @@ class ProductionSimulationServiceIT {
 
     @Autowired
     private ItemRepository itemRepository;
+
+    @Autowired
+    private StockRepository stockRepository;
+
+    @Test
+    void unknownYieldOnlyEstimatesPackagingWhenFinishedUnitsAreSupplied() {
+        Item ingredient = itemRepository.save(new Item("Unknown ingredient", ItemType.INGREDIENT, UnitType.G, null, null));
+        Item packaging = itemRepository.save(new Item("Unknown jar", ItemType.PACKAGING, UnitType.UN, null, null));
+        Item output = itemRepository.save(new Item("Unknown output", ItemType.FINISHED_PRODUCT, UnitType.UN, null, null));
+        stockRepository.save(new Stock(packaging, new BigDecimal("2")));
+        RecipeCreateRequest recipe = new RecipeCreateRequest();
+        recipe.setName("Unknown packaging recipe");
+        recipe.setOutputItemId(output.getId());
+        RecipeItemRequest ing = new RecipeItemRequest();
+        ing.setItemId(ingredient.getId());
+        ing.setQuantity(new BigDecimal("10"));
+        RecipeItemRequest pack = new RecipeItemRequest();
+        pack.setItemId(packaging.getId());
+        pack.setQuantity(BigDecimal.ONE);
+        recipe.setItems(List.of(ing, pack));
+        Long recipeId = recipeService.create(recipe).getId();
+
+        ProductionSimulationInputRequest input = new ProductionSimulationInputRequest();
+        input.setItemId(ingredient.getId());
+        input.setQuantity(new BigDecimal("20"));
+        ProductionSimulationRequest request = new ProductionSimulationRequest();
+        request.setRecipeId(recipeId);
+        request.setInputs(List.of(input));
+
+        ProductionSimulationResponse unknown = productionSimulationService.simulateFromInputs(request);
+        org.junit.jupiter.api.Assertions.assertNull(unknown.getQuantity());
+        assertEquals(1, unknown.getItems().size());
+
+        request.setPlannedFinishedQuantity(new BigDecimal("5"));
+        ProductionSimulationResponse known = productionSimulationService.simulateFromInputs(request);
+        assertEquals(0, known.getQuantity().compareTo(new BigDecimal("5")));
+        ProductionSimulationItemResponse packageLine = known.getItems().stream()
+                .filter(line -> line.getItemType() == ProductionSimulationItemResponse.ItemTypeEnum.PACKAGING)
+                .findFirst().orElseThrow();
+        assertEquals(0, packageLine.getRequiredQuantity().compareTo(new BigDecimal("5")));
+        assertEquals(0, packageLine.getCurrentStock().compareTo(new BigDecimal("2")));
+        assertEquals(0, packageLine.getMissingQuantity().compareTo(new BigDecimal("3")));
+    }
 
     @Test
     void simulateProductionCalculatesRequiredQuantitiesLossAndCost() {
