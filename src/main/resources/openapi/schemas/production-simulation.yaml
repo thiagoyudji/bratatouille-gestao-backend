@@ -45,6 +45,10 @@ ProductionSimulationResponse:
       description: Estimated pots that can be produced from the supplied inputs
     estimatedTotalCost:
       type: number
+    planningNote:
+      type: string
+      nullable: true
+      description: Explanation of incomplete estimates, especially when recipe yield is unknown.
     items:
       type: array
       items:
@@ -53,7 +57,6 @@ ProductionSimulationRequest:
   type: object
   required:
     - recipeId
-    - inputs
   properties:
     recipeId:
       type: integer
@@ -64,7 +67,7 @@ ProductionSimulationRequest:
       description: Optional planned number of finished pots; used to estimate packaging without inferring recipe yield.
     inputs:
       type: array
-      minItems: 1
+      description: Optional when plannedFinishedQuantity is supplied to plan from target pots.
       items:
         $ref: '#/ProductionSimulationInputRequest'
 

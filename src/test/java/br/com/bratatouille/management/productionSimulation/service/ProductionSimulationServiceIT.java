@@ -100,6 +100,72 @@ class ProductionSimulationServiceIT {
     }
 
     @Test
+    void targetPlanningUsesRealStockWithoutMovingIt() {
+        Item ingredient = itemRepository.save(new Item("Target ingredient", ItemType.INGREDIENT, UnitType.G, null, null));
+        Item packaging = itemRepository.save(new Item("Target packaging", ItemType.PACKAGING, UnitType.UN, null, null));
+        Item product = itemRepository.save(new Item("Target product", ItemType.FINISHED_PRODUCT, UnitType.UN, null, null));
+        stockRepository.save(new Stock(ingredient, new BigDecimal("15")));
+        stockRepository.save(new Stock(packaging, new BigDecimal("3")));
+        RecipeCreateRequest recipe = new RecipeCreateRequest();
+        recipe.setName("Target recipe");
+        recipe.setOutputItemId(product.getId());
+        recipe.setYieldQuantity(new BigDecimal("2"));
+        RecipeItemRequest ingredientLine = new RecipeItemRequest();
+        ingredientLine.setItemId(ingredient.getId());
+        ingredientLine.setQuantity(new BigDecimal("10"));
+        RecipeItemRequest packagingLine = new RecipeItemRequest();
+        packagingLine.setItemId(packaging.getId());
+        packagingLine.setQuantity(BigDecimal.ONE);
+        recipe.setItems(List.of(ingredientLine, packagingLine));
+        Long recipeId = recipeService.create(recipe).getId();
+
+        ProductionSimulationRequest request = new ProductionSimulationRequest();
+        request.setRecipeId(recipeId);
+        request.setPlannedFinishedQuantity(new BigDecimal("4"));
+        ProductionSimulationResponse result = productionSimulationService.simulateFromInputs(request);
+
+        assertEquals(0, result.getQuantity().compareTo(new BigDecimal("4")));
+        assertEquals(2, result.getItems().size());
+        ProductionSimulationItemResponse raw = result.getItems().stream()
+                .filter(item -> ingredient.getId().equals(item.getItemId())).findFirst().orElseThrow();
+        ProductionSimulationItemResponse jar = result.getItems().stream()
+                .filter(item -> packaging.getId().equals(item.getItemId())).findFirst().orElseThrow();
+        assertEquals(0, raw.getRequiredQuantity().compareTo(new BigDecimal("20")));
+        assertEquals(0, raw.getMissingQuantity().compareTo(new BigDecimal("5")));
+        assertEquals(0, jar.getRequiredQuantity().compareTo(new BigDecimal("4")));
+        assertEquals(0, jar.getMissingQuantity().compareTo(BigDecimal.ONE));
+        assertEquals(0, stockRepository.findByItemId(ingredient.getId()).orElseThrow().getQuantity().compareTo(new BigDecimal("15")));
+    }
+
+    @Test
+    void targetPlanningWithUnknownYieldShowsOnlyPackagingAndLimitation() {
+        Item ingredient = itemRepository.save(new Item("Unknown target ingredient", ItemType.INGREDIENT, UnitType.G, null, null));
+        Item packaging = itemRepository.save(new Item("Unknown target packaging", ItemType.PACKAGING, UnitType.UN, null, null));
+        Item output = itemRepository.save(new Item("Unknown target output", ItemType.FINISHED_PRODUCT, UnitType.UN, null, null));
+        RecipeCreateRequest recipe = new RecipeCreateRequest();
+        recipe.setName("Unknown target recipe");
+        recipe.setOutputItemId(output.getId());
+        RecipeItemRequest raw = new RecipeItemRequest();
+        raw.setItemId(ingredient.getId());
+        raw.setQuantity(new BigDecimal("100"));
+        RecipeItemRequest jar = new RecipeItemRequest();
+        jar.setItemId(packaging.getId());
+        jar.setQuantity(BigDecimal.ONE);
+        recipe.setItems(List.of(raw, jar));
+        Long id = recipeService.create(recipe).getId();
+
+        ProductionSimulationRequest request = new ProductionSimulationRequest();
+        request.setRecipeId(id);
+        request.setPlannedFinishedQuantity(new BigDecimal("6"));
+        ProductionSimulationResponse result = productionSimulationService.simulateFromInputs(request);
+        assertEquals(1, result.getItems().size());
+        assertEquals(packaging.getId(), result.getItems().get(0).getItemId());
+        assertNotNull(result.getPlanningNote());
+        request.setPlannedFinishedQuantity(new BigDecimal("1.5"));
+        assertThrows(IllegalArgumentException.class, () -> productionSimulationService.simulateFromInputs(request));
+    }
+
+    @Test
     void simulateProductionCalculatesRequiredQuantitiesLossAndCost() {
         Partner payer = savePartner("Main Partner");
         Item flour = saveItem("Flour", ItemType.INGREDIENT);

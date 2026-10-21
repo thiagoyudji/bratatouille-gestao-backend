@@ -77,8 +77,11 @@ public class ProductionSimulationService {
 
     @Transactional(readOnly = true)
     public ProductionSimulationResponse simulateFromInputs(ProductionSimulationRequest request) {
-        if (request == null || request.getRecipeId() == null || request.getInputs() == null || request.getInputs().isEmpty()) {
-            throw new IllegalArgumentException("recipeId and inputs are required");
+        if (request == null || request.getRecipeId() == null) {
+            throw new IllegalArgumentException("recipeId is required");
+        }
+        if (request.getInputs() == null || request.getInputs().isEmpty()) {
+            return simulateByTarget(request);
         }
         Recipe recipe = recipeRepository.findById(request.getRecipeId())
                 .orElseThrow(() -> new NoSuchElementException("Recipe not found"));
@@ -144,6 +147,69 @@ public class ProductionSimulationService {
         response.setEstimatedTotalCost(items.stream().map(ProductionSimulationItemResponse::getTotalCost)
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
         return response;
+    }
+
+    /**
+     * Output-driven planning never guesses ingredient quantities for recipes without a reference yield.
+     * Stock shortages are informational; no stock change is performed.
+     */
+    private ProductionSimulationResponse simulateByTarget(ProductionSimulationRequest request) {
+        BigDecimal planned = request.getPlannedFinishedQuantity();
+        if (planned == null || planned.signum() <= 0 || planned.stripTrailingZeros().scale() > 0) {
+            throw new IllegalArgumentException("plannedFinishedQuantity must be a positive whole number");
+        }
+        Recipe recipe = recipeRepository.findById(request.getRecipeId())
+                .orElseThrow(() -> new NoSuchElementException("Recipe not found"));
+        if (!Boolean.TRUE.equals(recipe.getActive())) {
+            throw new IllegalArgumentException("Recipe is inactive");
+        }
+
+        boolean knownYield = recipe.getYieldQuantity() != null;
+        List<ProductionSimulationItemResponse> lines = recipe.getItems().stream()
+                .filter(line -> knownYield || line.getItem().getType() == ItemType.PACKAGING)
+                .map(line -> simulateItemForTarget(line, planned, recipe.getYieldQuantity()))
+                .toList();
+
+        ProductionSimulationResponse response = new ProductionSimulationResponse();
+        response.setRecipeId(recipe.getId());
+        response.setRecipeName(recipe.getName());
+        response.setOutputItemId(recipe.getOutputItem().getId());
+        response.setOutputItemName(recipe.getOutputItem().getName());
+        response.setQuantity(planned);
+        response.setItems(lines);
+        response.setEstimatedTotalCost(lines.stream()
+                .map(ProductionSimulationItemResponse::getTotalCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+        response.setPlanningNote(knownYield ? null :
+                "Rendimento desconhecido: ingredientes e custos correspondentes não podem ser estimados. Apenas embalagens foram planejadas.");
+        return response;
+    }
+
+    private ProductionSimulationItemResponse simulateItemForTarget(
+            RecipeItem recipeItem, BigDecimal finishedQuantity, BigDecimal referenceYield
+    ) {
+        BigDecimal required = recipeItem.getItem().getType() == ItemType.PACKAGING
+                ? recipeItem.getQuantity().multiply(finishedQuantity)
+                : recipeItem.getQuantity().multiply(finishedQuantity)
+                    .divide(referenceYield, 6, RoundingMode.HALF_UP);
+        BigDecimal currentStock = stockRepository.findByItemId(recipeItem.getItem().getId())
+                .map(Stock::getQuantity).orElse(BigDecimal.ZERO);
+        BigDecimal unitCost = costService.findUnitCostOrZero(recipeItem.getItem());
+        ProductionSimulationItemResponse line = new ProductionSimulationItemResponse();
+        line.setItemId(recipeItem.getItem().getId());
+        line.setItemName(recipeItem.getItem().getName());
+        line.setItemType(recipeItem.getItem().getType() == ItemType.PACKAGING
+                ? ProductionSimulationItemResponse.ItemTypeEnum.PACKAGING
+                : ProductionSimulationItemResponse.ItemTypeEnum.INGREDIENT);
+        line.setRequiredQuantity(required);
+        line.setUsableQuantity(required);
+        line.setLossQuantity(BigDecimal.ZERO);
+        line.setYieldPercentage(BigDecimal.ONE);
+        line.setCurrentStock(currentStock);
+        line.setMissingQuantity(required.subtract(currentStock).max(BigDecimal.ZERO));
+        line.setUnitCost(unitCost);
+        line.setTotalCost(unitCost.multiply(required));
+        return line;
     }
 
     private ProductionSimulationItemResponse simulateInputItem(RecipeItem recipeItem, BigDecimal supplied, BigDecimal factor) {
