@@ -49,7 +49,9 @@ PurchaseItemRequest:
       type: string
       enum:
         - G
+        - KG
         - ML
+        - L
         - UN
     totalValue:
       type: number
