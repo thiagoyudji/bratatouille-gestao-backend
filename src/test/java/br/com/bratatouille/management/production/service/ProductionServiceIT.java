@@ -225,6 +225,48 @@ class ProductionServiceIT {
 
 
     @Test
+    void productionAutomaticallyConsumesPackagingAndAllowsExtraDamagedUnits() {
+        Item ingredient = itemRepository.save(new Item("Auto ingredient", ItemType.INGREDIENT, UnitType.G, null, null));
+        Item jar = itemRepository.save(new Item("Auto jar", ItemType.PACKAGING, UnitType.UN, null, null));
+        Item label = itemRepository.save(new Item("Auto label", ItemType.PACKAGING, UnitType.UN, null, null));
+        Item seal = itemRepository.save(new Item("Auto seal", ItemType.PACKAGING, UnitType.UN, null, null));
+        Item output = itemRepository.save(new Item("Auto output", ItemType.FINISHED_PRODUCT, UnitType.UN, null, null));
+        stockRepository.save(new Stock(ingredient, new BigDecimal("100")));
+        stockRepository.save(new Stock(jar, new BigDecimal("30")));
+        stockRepository.save(new Stock(label, new BigDecimal("30")));
+        stockRepository.save(new Stock(seal, new BigDecimal("30")));
+
+        Recipe recipe = recipeRepository.save(Recipe.create("Auto packaging recipe", output, null, List.of(
+                new ItemQuantityData(ingredient, new BigDecimal("10")),
+                new ItemQuantityData(jar, BigDecimal.ONE),
+                new ItemQuantityData(label, BigDecimal.ONE),
+                new ItemQuantityData(seal, BigDecimal.ONE))));
+
+        ProductionCreateRequest request = new ProductionCreateRequest();
+        request.setRecipeId(recipe.getId());
+        request.setProducedQuantity(new BigDecimal("5"));
+        ProductionConsumedItemRequest consumedIngredient = new ProductionConsumedItemRequest();
+        consumedIngredient.setItemId(ingredient.getId());
+        consumedIngredient.setQuantity(new BigDecimal("40"));
+        ProductionConsumedItemRequest damagedSeals = new ProductionConsumedItemRequest();
+        damagedSeals.setItemId(seal.getId());
+        damagedSeals.setQuantity(new BigDecimal("7"));
+        request.setItems(List.of(consumedIngredient, damagedSeals));
+
+        productionService.create(request);
+        assertEquals(0, stockRepository.findByItemId(jar.getId()).orElseThrow()
+                .getQuantity().compareTo(new BigDecimal("25")));
+        assertEquals(0, stockRepository.findByItemId(label.getId()).orElseThrow()
+                .getQuantity().compareTo(new BigDecimal("25")));
+        assertEquals(0, stockRepository.findByItemId(seal.getId()).orElseThrow()
+                .getQuantity().compareTo(new BigDecimal("23")));
+        assertEquals(0, stockRepository.findByItemId(ingredient.getId()).orElseThrow()
+                .getQuantity().compareTo(new BigDecimal("60")));
+        assertEquals(0, stockRepository.findByItemId(output.getId()).orElseThrow()
+                .getQuantity().compareTo(new BigDecimal("5")));
+    }
+
+    @Test
     void productionWithoutYieldRecordsExactIngredientsAndPackaging() {
         Item flour = itemRepository.save(new Item("Manual flour", ItemType.INGREDIENT, UnitType.G, null, null));
         Item pot = itemRepository.save(new Item("Manual pot", ItemType.PACKAGING, UnitType.UN, null, null));
