@@ -72,6 +72,35 @@ class PurchaseServiceIT {
     private br.com.bratatouille.management.stock.service.StockService stockService;
 
     @Test
+    void purchaseInKilogramsPersistsCanonicalGramsAndPreservesCost() {
+        Item sugar = itemRepository.save(new Item(
+                "Kilogram sugar", ItemType.INGREDIENT, UnitType.G, null, null
+        ));
+        PurchaseCreateRequest request = new PurchaseCreateRequest();
+        request.setPayerType(PurchaseCreateRequest.PayerTypeEnum.BRATATOUILLE);
+        request.setPurchaseDate(LocalDate.of(2026, 10, 21));
+        request.setSupplier("Unit conversion supplier");
+
+        PurchaseItemRequest line = new PurchaseItemRequest();
+        line.setItemId(sugar.getId());
+        line.setQuantity(new BigDecimal("2.5"));
+        line.setUnit(PurchaseItemRequest.UnitEnum.KG);
+        line.setTotalValue(new BigDecimal("35.00"));
+        request.setItems(List.of(line));
+
+        PurchaseResponse saved = purchaseService.create(request);
+        assertEquals(0, new BigDecimal("2500").compareTo(saved.getItems().get(0).getQuantity()));
+        assertEquals(PurchaseResponse.class, saved.getClass());
+        assertEquals(0, new BigDecimal("2500").compareTo(
+                stockRepository.findByItemId(sugar.getId()).orElseThrow().getQuantity()));
+        assertEquals(0, new BigDecimal("35").compareTo(saved.getTotalAmount()));
+        assertTrue(stockMovementRepository.findAll().stream()
+                .anyMatch(m -> m.getItem().getId().equals(sugar.getId())
+                        && m.getType() == StockMovementType.PURCHASE_ENTRY
+                        && m.getQuantity().compareTo(new BigDecimal("2500")) == 0));
+    }
+
+    @Test
     void createPurchaseIncreasesStockAndRegistersMovement() {
         long initialPurchaseCount = purchaseRepository.count();
         long initialMovementCount = stockMovementRepository.count();
