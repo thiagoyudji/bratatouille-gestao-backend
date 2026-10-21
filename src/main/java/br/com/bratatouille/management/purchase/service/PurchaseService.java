@@ -9,6 +9,7 @@ import br.com.bratatouille.management.generated.model.PurchaseSplitRequest;
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.entity.ItemType;
 import br.com.bratatouille.management.item.entity.UnitType;
+import br.com.bratatouille.management.item.domain.QuantityUnitConverter;
 import br.com.bratatouille.management.item.repository.ItemRepository;
 import br.com.bratatouille.management.partner.entity.Partner;
 import br.com.bratatouille.management.partner.repository.PartnerRepository;
@@ -204,8 +205,9 @@ public class PurchaseService {
 
         return new PurchaseItemData(
                 item,
-                request.getQuantity(),
-                String.valueOf(request.getUnit()),
+                QuantityUnitConverter.toBase(request.getQuantity(),
+                        request.getUnit() == null ? null : request.getUnit().name(), item.getBaseUnit()),
+                item.getBaseUnit().name(),
                 request.getTotalValue()
         );
     }
