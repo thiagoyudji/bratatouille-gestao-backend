@@ -50,6 +50,9 @@ public class ProductionSimulationService {
             throw new IllegalArgumentException("Recipe is inactive");
         }
 
+        if (recipe.getYieldQuantity() == null) {
+            throw new IllegalArgumentException("Cannot estimate finished units without a reference yield");
+        }
         List<ProductionSimulationItemResponse> items = recipe.getItems()
                 .stream()
                 .map(item -> simulateItem(item, quantity))
@@ -115,7 +118,8 @@ public class ProductionSimulationService {
                         .divide(item.getQuantity(), 6, RoundingMode.DOWN))
                 .min(BigDecimal::compareTo)
                 .orElse(BigDecimal.ZERO);
-        BigDecimal pots = factor.multiply(recipe.getYieldQuantity()).setScale(0, RoundingMode.DOWN);
+        BigDecimal pots = recipe.getYieldQuantity() == null ? null
+                : factor.multiply(recipe.getYieldQuantity()).setScale(0, RoundingMode.DOWN);
         List<ProductionSimulationItemResponse> items = recipe.getItems().stream()
                 .map(item -> item.getItem().getType() == ItemType.PACKAGING
                         ? simulatePackagingItem(item, factor)
@@ -172,7 +176,8 @@ public class ProductionSimulationService {
     }
 
     private ProductionSimulationItemResponse simulateItem(RecipeItem recipeItem, BigDecimal quantity) {
-        BigDecimal usableQuantity = recipeItem.getQuantity().multiply(quantity);
+        BigDecimal usableQuantity = recipeItem.getQuantity().multiply(quantity)
+                .divide(recipeItem.getRecipe().getYieldQuantity(), 6, RoundingMode.HALF_UP);
 
         BigDecimal requiredQuantity = usableQuantity.divide(
                 BigDecimal.ONE,
@@ -196,6 +201,9 @@ public class ProductionSimulationService {
 
         response.setItemId(recipeItem.getItem().getId());
         response.setItemName(recipeItem.getItem().getName());
+        response.setItemType(recipeItem.getItem().getType() == ItemType.PACKAGING
+                ? ProductionSimulationItemResponse.ItemTypeEnum.PACKAGING
+                : ProductionSimulationItemResponse.ItemTypeEnum.INGREDIENT);
         response.setRequiredQuantity(requiredQuantity);
         response.setUsableQuantity(usableQuantity);
         response.setLossQuantity(lossQuantity);

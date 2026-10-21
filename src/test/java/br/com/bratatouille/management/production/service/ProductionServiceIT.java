@@ -4,6 +4,7 @@ import br.com.bratatouille.management.generated.model.PurchaseCreateRequest;
 import br.com.bratatouille.management.generated.model.PurchaseItemRequest;
 import br.com.bratatouille.management.generated.model.PurchaseSplitRequest;
 import br.com.bratatouille.management.generated.model.ProductionCreateRequest;
+import br.com.bratatouille.management.generated.model.ProductionConsumedItemRequest;
 import br.com.bratatouille.management.generated.model.ProductionResponse;
 import br.com.bratatouille.management.item.entity.Item;
 import br.com.bratatouille.management.item.entity.ItemType;
@@ -220,6 +221,69 @@ class ProductionServiceIT {
         assertTrue(stockRepository.findByItemId(cake.getId()).isEmpty());
         assertEquals(initialProductionCount, productionRepository.count());
         assertEquals(initialLotCount, lotRepository.count());
+    }
+
+
+    @Test
+    void productionWithoutYieldRecordsExactIngredientsAndPackaging() {
+        Item flour = itemRepository.save(new Item("Manual flour", ItemType.INGREDIENT, UnitType.G, null, null));
+        Item pot = itemRepository.save(new Item("Manual pot", ItemType.PACKAGING, UnitType.UN, null, null));
+        Item cake = itemRepository.save(new Item("Manual cake", ItemType.FINISHED_PRODUCT, UnitType.UN, null, null));
+        stockRepository.save(new Stock(flour, new BigDecimal("100")));
+        stockRepository.save(new Stock(pot, new BigDecimal("20")));
+
+        Recipe recipe = recipeRepository.save(Recipe.create("Manual recipe", cake, null, List.of(
+                new ItemQuantityData(flour, new BigDecimal("10")),
+                new ItemQuantityData(pot, BigDecimal.ONE))));
+        ProductionCreateRequest request = new ProductionCreateRequest();
+        request.setRecipeId(recipe.getId());
+        request.setProducedQuantity(new BigDecimal("3"));
+
+        assertThrows(IllegalArgumentException.class, () -> productionService.create(request));
+        assertEquals(0, new BigDecimal("100").compareTo(
+                stockRepository.findByItemId(flour.getId()).orElseThrow().getQuantity()));
+
+        ProductionConsumedItemRequest consumedFlour = new ProductionConsumedItemRequest();
+        consumedFlour.setItemId(flour.getId());
+        consumedFlour.setQuantity(new BigDecimal("30"));
+        ProductionConsumedItemRequest consumedPot = new ProductionConsumedItemRequest();
+        consumedPot.setItemId(pot.getId());
+        consumedPot.setQuantity(new BigDecimal("3"));
+        request.setItems(List.of(consumedFlour, consumedPot));
+
+        ProductionResponse response = productionService.create(request);
+        assertEquals(0, new BigDecimal("3").compareTo(response.getProducedQuantity()));
+        assertEquals(0, new BigDecimal("70").compareTo(
+                stockRepository.findByItemId(flour.getId()).orElseThrow().getQuantity()));
+        assertEquals(0, new BigDecimal("17").compareTo(
+                stockRepository.findByItemId(pot.getId()).orElseThrow().getQuantity()));
+        assertEquals(0, new BigDecimal("3").compareTo(
+                stockRepository.findByItemId(cake.getId()).orElseThrow().getQuantity()));
+    }
+
+    @Test
+    void productionRejectsIncompleteAndDuplicateConsumption() {
+        Item flour = itemRepository.save(new Item("Missing flour", ItemType.INGREDIENT, UnitType.G, null, null));
+        Item pot = itemRepository.save(new Item("Missing pot", ItemType.PACKAGING, UnitType.UN, null, null));
+        Item cake = itemRepository.save(new Item("Missing cake", ItemType.FINISHED_PRODUCT, UnitType.UN, null, null));
+        stockRepository.save(new Stock(flour, new BigDecimal("100")));
+        Recipe recipe = recipeRepository.save(Recipe.create("Missing recipe", cake, null, List.of(
+                new ItemQuantityData(flour, new BigDecimal("10")),
+                new ItemQuantityData(pot, BigDecimal.ONE))));
+
+        ProductionConsumedItemRequest consumed = new ProductionConsumedItemRequest();
+        consumed.setItemId(flour.getId());
+        consumed.setQuantity(new BigDecimal("30"));
+        ProductionCreateRequest request = new ProductionCreateRequest();
+        request.setRecipeId(recipe.getId());
+        request.setProducedQuantity(new BigDecimal("3"));
+        request.setItems(List.of(consumed));
+
+        assertThrows(IllegalArgumentException.class, () -> productionService.create(request));
+        request.setItems(List.of(consumed, consumed));
+        assertThrows(IllegalArgumentException.class, () -> productionService.create(request));
+        assertEquals(0, new BigDecimal("100").compareTo(
+                stockRepository.findByItemId(flour.getId()).orElseThrow().getQuantity()));
     }
 
     private void seedPurchase(Partner payer, Item item, BigDecimal quantity, BigDecimal totalValue) {

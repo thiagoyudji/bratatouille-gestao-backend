@@ -28,7 +28,7 @@ public class Recipe {
     @JoinColumn(name = "output_item_id", nullable = false)
     private Item outputItem;
 
-    @Column(nullable = false, precision = 19, scale = 3)
+    @Column(precision = 19, scale = 3)
     private BigDecimal yieldQuantity;
 
     @Column(nullable = false)
@@ -137,7 +137,7 @@ public class Recipe {
     }
 
     private static void validateYieldQuantity(BigDecimal yieldQuantity) {
-        if (yieldQuantity == null || yieldQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+        if (yieldQuantity != null && yieldQuantity.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("yieldQuantity must be greater than zero");
         }
     }

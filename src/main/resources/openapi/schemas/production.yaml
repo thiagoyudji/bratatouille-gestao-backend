@@ -9,6 +9,11 @@ ProductionCreateRequest:
       format: int64
     producedQuantity:
       type: number
+    items:
+      type: array
+      description: Actual consumption of all ingredient and packaging items. Mandatory if yield is unknown.
+      items:
+        $ref: '#/ProductionConsumedItemRequest'
 
 ProductionItemResponse:
   type: object
@@ -69,3 +74,14 @@ ProductionResponse:
     createdAt:
       type: string
       format: date-time
+ProductionConsumedItemRequest:
+  type: object
+  required: [itemId, quantity]
+  properties:
+    itemId:
+      type: integer
+      format: int64
+    quantity:
+      type: number
+      minimum: 0
+      exclusiveMinimum: true

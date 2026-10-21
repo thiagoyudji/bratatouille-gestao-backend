@@ -62,10 +62,7 @@ public class ProductionService {
 
         BigDecimal producedQuantity = request.getProducedQuantity();
 
-        List<ProductionItemData> itemsData = recipe.getItems()
-                .stream()
-                .map(recipeItem -> buildProductionItemData(recipeItem, producedQuantity))
-                .toList();
+        List<ProductionItemData> itemsData = buildProductionItems(recipe, request, producedQuantity);
 
         BigDecimal totalCost = itemsData.stream()
                 .map(ProductionItemData::totalCost)
@@ -110,31 +107,50 @@ public class ProductionService {
         return productionMapper.toResponse(production);
     }
 
-    private ProductionItemData buildProductionItemData(RecipeItem recipeItem, BigDecimal producedQuantity) {
-        BigDecimal usableQuantity = recipeItem.getQuantity().multiply(producedQuantity)
-                .divide(recipeItem.getRecipe().getYieldQuantity(), 6, RoundingMode.HALF_UP);
+    private List<ProductionItemData> buildProductionItems(
+            Recipe recipe, ProductionCreateRequest request, BigDecimal producedQuantity
+    ) {
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            if (recipe.getYieldQuantity() == null) {
+                throw new IllegalArgumentException(
+                        "Actual consumption is required when recipe yield is unknown");
+            }
+            return recipe.getItems().stream()
+                    .map(item -> buildProductionItemData(item, item.getQuantity()
+                            .multiply(producedQuantity)
+                            .divide(recipe.getYieldQuantity(), 6, RoundingMode.HALF_UP)))
+                    .toList();
+        }
 
-        BigDecimal consumedQuantity = usableQuantity.divide(
-                BigDecimal.ONE,
-                6,
-                RoundingMode.HALF_UP
-        );
+        java.util.Map<Long, BigDecimal> consumed = new java.util.HashMap<>();
+        request.getItems().forEach(input -> {
+            if (input.getItemId() == null || input.getQuantity() == null
+                    || input.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Every consumed item needs an id and positive quantity");
+            }
+            if (consumed.putIfAbsent(input.getItemId(), input.getQuantity()) != null) {
+                throw new IllegalArgumentException("Duplicated consumed item: " + input.getItemId());
+            }
+        });
 
+        java.util.Set<Long> expected = recipe.getItems().stream()
+                .map(item -> item.getItem().getId()).collect(java.util.stream.Collectors.toSet());
+        if (!consumed.keySet().equals(expected)) {
+            throw new IllegalArgumentException(
+                    "Actual consumption must contain every recipe ingredient and packaging item, without extras");
+        }
+        return recipe.getItems().stream()
+                .map(item -> buildProductionItemData(item, consumed.get(item.getItem().getId())))
+                .toList();
+    }
+
+    private ProductionItemData buildProductionItemData(RecipeItem recipeItem, BigDecimal consumedQuantity) {
         validateStock(recipeItem, consumedQuantity);
-
         BigDecimal unitCost = costService.findUnitCostOrZero(recipeItem.getItem());
-
-        BigDecimal lossQuantity = BigDecimal.ZERO;
         BigDecimal totalCost = unitCost.multiply(consumedQuantity);
-
         return new ProductionItemData(
-                recipeItem.getItem(),
-                consumedQuantity,
-                usableQuantity,
-                lossQuantity,
-                BigDecimal.ONE,
-                unitCost,
-                totalCost
+                recipeItem.getItem(), consumedQuantity, consumedQuantity,
+                BigDecimal.ZERO, BigDecimal.ONE, unitCost, totalCost
         );
     }
 

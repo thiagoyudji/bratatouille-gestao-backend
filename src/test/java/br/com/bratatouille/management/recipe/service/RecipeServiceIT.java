@@ -57,6 +57,7 @@ class RecipeServiceIT {
         assertEquals(cake.getId(), created.getOutputItemId());
         assertEquals("Cake", created.getOutputItemName());
         assertTrue(created.getActive());
+        org.junit.jupiter.api.Assertions.assertNull(created.getYieldQuantity());
         assertEquals(1, created.getItems().size());
         assertEquals(flour.getId(), created.getItems().get(0).getItemId());
         assertEquals(new BigDecimal("2.000"), created.getItems().get(0).getQuantity());
@@ -64,16 +65,22 @@ class RecipeServiceIT {
         RecipeUpdateRequest updateRequest = new RecipeUpdateRequest();
         updateRequest.setName("Cake base v2");
         updateRequest.setOutputItemId(cake.getId());
+        updateRequest.setYieldQuantity(new BigDecimal("5"));
         updateRequest.setItems(java.util.List.of(recipeItem(sugar.getId(), new BigDecimal("1.250"))));
 
         RecipeResponse updated = recipeService.update(created.getId(), updateRequest);
 
         assertEquals(created.getId(), updated.getId());
         assertEquals("Cake base v2", updated.getName());
+        assertEquals(0, new BigDecimal("5").compareTo(updated.getYieldQuantity()));
         assertEquals(cake.getId(), updated.getOutputItemId());
         assertEquals(1, updated.getItems().size());
         assertEquals(sugar.getId(), updated.getItems().get(0).getItemId());
         assertEquals(new BigDecimal("1.250"), updated.getItems().get(0).getQuantity());
+
+        updateRequest.setYieldQuantity(null);
+        RecipeResponse withoutYield = recipeService.update(created.getId(), updateRequest);
+        org.junit.jupiter.api.Assertions.assertNull(withoutYield.getYieldQuantity());
 
         RecipeResponse deactivated = recipeService.deactivate(created.getId());
         assertFalse(deactivated.getActive());
