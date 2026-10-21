@@ -120,9 +120,18 @@ public class ProductionSimulationService {
                 .orElse(BigDecimal.ZERO);
         BigDecimal pots = recipe.getYieldQuantity() == null ? null
                 : factor.multiply(recipe.getYieldQuantity()).setScale(0, RoundingMode.DOWN);
+        if (request.getPlannedFinishedQuantity() != null) {
+            if (request.getPlannedFinishedQuantity().compareTo(BigDecimal.ZERO) <= 0
+                    || request.getPlannedFinishedQuantity().stripTrailingZeros().scale() > 0) {
+                throw new IllegalArgumentException("plannedFinishedQuantity must be a positive whole number");
+            }
+            pots = request.getPlannedFinishedQuantity();
+        }
+        final BigDecimal finishedUnits = pots;
         List<ProductionSimulationItemResponse> items = recipe.getItems().stream()
+                .filter(item -> item.getItem().getType() != ItemType.PACKAGING || finishedUnits != null)
                 .map(item -> item.getItem().getType() == ItemType.PACKAGING
-                        ? simulatePackagingItem(item, factor)
+                        ? simulatePackagingItem(item, finishedUnits)
                         : simulateInputItem(item, supplied.getOrDefault(item.getItem().getId(), BigDecimal.ZERO), factor))
                 .toList();
         ProductionSimulationResponse response = new ProductionSimulationResponse();
@@ -157,8 +166,10 @@ public class ProductionSimulationService {
         return response;
     }
 
-    private ProductionSimulationItemResponse simulatePackagingItem(RecipeItem recipeItem, BigDecimal factor) {
-        BigDecimal required = recipeItem.getQuantity().multiply(factor);
+    private ProductionSimulationItemResponse simulatePackagingItem(RecipeItem recipeItem, BigDecimal producedUnits) {
+        BigDecimal required = recipeItem.getQuantity().multiply(producedUnits);
+        BigDecimal currentStock = stockRepository.findByItemId(recipeItem.getItem().getId())
+                .map(Stock::getQuantity).orElse(BigDecimal.ZERO);
         BigDecimal unitCost = costService.findUnitCostOrZero(recipeItem.getItem());
         ProductionSimulationItemResponse response = new ProductionSimulationItemResponse();
         response.setItemId(recipeItem.getItem().getId());
@@ -168,16 +179,18 @@ public class ProductionSimulationService {
         response.setUsableQuantity(required);
         response.setLossQuantity(BigDecimal.ZERO);
         response.setYieldPercentage(BigDecimal.ONE);
-        response.setCurrentStock(required);
-        response.setMissingQuantity(BigDecimal.ZERO);
+        response.setCurrentStock(currentStock);
+        response.setMissingQuantity(required.subtract(currentStock).max(BigDecimal.ZERO));
         response.setUnitCost(unitCost);
         response.setTotalCost(unitCost.multiply(required));
         return response;
     }
 
     private ProductionSimulationItemResponse simulateItem(RecipeItem recipeItem, BigDecimal quantity) {
-        BigDecimal usableQuantity = recipeItem.getQuantity().multiply(quantity)
-                .divide(recipeItem.getRecipe().getYieldQuantity(), 6, RoundingMode.HALF_UP);
+        BigDecimal usableQuantity = recipeItem.getItem().getType() == ItemType.PACKAGING
+                ? recipeItem.getQuantity().multiply(quantity)
+                : recipeItem.getQuantity().multiply(quantity)
+                    .divide(recipeItem.getRecipe().getYieldQuantity(), 6, RoundingMode.HALF_UP);
 
         BigDecimal requiredQuantity = usableQuantity.divide(
                 BigDecimal.ONE,
