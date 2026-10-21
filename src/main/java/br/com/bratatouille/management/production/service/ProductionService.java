@@ -110,38 +110,60 @@ public class ProductionService {
     private List<ProductionItemData> buildProductionItems(
             Recipe recipe, ProductionCreateRequest request, BigDecimal producedQuantity
     ) {
-        if (request.getItems() == null || request.getItems().isEmpty()) {
-            if (recipe.getYieldQuantity() == null) {
-                throw new IllegalArgumentException(
-                        "Actual consumption is required when recipe yield is unknown");
-            }
-            return recipe.getItems().stream()
-                    .map(item -> buildProductionItemData(item, item.getQuantity()
-                            .multiply(producedQuantity)
-                            .divide(recipe.getYieldQuantity(), 6, RoundingMode.HALF_UP)))
-                    .toList();
+        java.util.Map<Long, BigDecimal> supplied = new java.util.HashMap<>();
+        if (request.getItems() != null) {
+            request.getItems().forEach(input -> {
+                if (input.getItemId() == null || input.getQuantity() == null
+                        || input.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new IllegalArgumentException("Every consumed item needs an id and positive quantity");
+                }
+                if (supplied.putIfAbsent(input.getItemId(), input.getQuantity()) != null) {
+                    throw new IllegalArgumentException("Duplicated consumed item: " + input.getItemId());
+                }
+            });
         }
 
-        java.util.Map<Long, BigDecimal> consumed = new java.util.HashMap<>();
-        request.getItems().forEach(input -> {
-            if (input.getItemId() == null || input.getQuantity() == null
-                    || input.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Every consumed item needs an id and positive quantity");
-            }
-            if (consumed.putIfAbsent(input.getItemId(), input.getQuantity()) != null) {
-                throw new IllegalArgumentException("Duplicated consumed item: " + input.getItemId());
-            }
-        });
+        java.util.Set<Long> recipeItemIds = recipe.getItems().stream()
+                .map(item -> item.getItem().getId())
+                .collect(java.util.stream.Collectors.toSet());
+        if (!recipeItemIds.containsAll(supplied.keySet())) {
+            throw new IllegalArgumentException("Actual consumption includes items outside the recipe");
+        }
 
-        java.util.Set<Long> expected = recipe.getItems().stream()
-                .map(item -> item.getItem().getId()).collect(java.util.stream.Collectors.toSet());
-        if (!consumed.keySet().equals(expected)) {
+        boolean manual = !supplied.isEmpty();
+        if (!manual && recipe.getYieldQuantity() == null) {
             throw new IllegalArgumentException(
-                    "Actual consumption must contain every recipe ingredient and packaging item, without extras");
+                    "Actual ingredient consumption is required when recipe yield is unknown");
         }
-        return recipe.getItems().stream()
-                .map(item -> buildProductionItemData(item, consumed.get(item.getItem().getId())))
-                .toList();
+        return recipe.getItems().stream().map(item -> {
+            boolean packaging = item.getItem().getType()
+                    == br.com.bratatouille.management.item.entity.ItemType.PACKAGING;
+            BigDecimal required = packaging
+                    ? item.getQuantity().multiply(producedQuantity)
+                    : recipe.getYieldQuantity() == null ? null
+                    : item.getQuantity().multiply(producedQuantity)
+                        .divide(recipe.getYieldQuantity(), 6, RoundingMode.HALF_UP);
+
+            BigDecimal actual = supplied.get(item.getItem().getId());
+            if (packaging) {
+                if (actual == null) {
+                    actual = required;
+                } else if (actual.compareTo(required) < 0) {
+                    throw new IllegalArgumentException(
+                            "Packaging consumption cannot be lower than finished units: "
+                                    + item.getItem().getName());
+                }
+                if (actual.stripTrailingZeros().scale() > 0) {
+                    throw new IllegalArgumentException("Packaging consumption must be whole units");
+                }
+            } else if (actual == null) {
+                if (manual) {
+                    throw new IllegalArgumentException("All recipe ingredients must be supplied");
+                }
+                actual = required;
+            }
+            return buildProductionItemData(item, actual);
+        }).toList();
     }
 
     private ProductionItemData buildProductionItemData(RecipeItem recipeItem, BigDecimal consumedQuantity) {
@@ -172,6 +194,9 @@ public class ProductionService {
 
         if (request.getProducedQuantity() == null || request.getProducedQuantity().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("producedQuantity must be greater than zero");
+        }
+        if (request.getProducedQuantity().stripTrailingZeros().scale() > 0) {
+            throw new IllegalArgumentException("producedQuantity must be whole units");
         }
     }
 }
